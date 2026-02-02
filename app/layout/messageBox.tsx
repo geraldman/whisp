@@ -9,7 +9,6 @@ function messageBox(){
             <MessageComponent messageText="im fine, hbu?" from="receive"/>
             <MessageComponent messageText="very good" from="send"/>
             <MessageComponent messageText="im doing well" from="send"/>
-            
         </div>
     )
 }
