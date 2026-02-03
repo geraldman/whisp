@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
-import MessageInput from "../components/messageinput";
-import MessageBox from "../layout/messageBox";
-import MessageComponent from "../components/messageComponent";
+import MessageInput from "../../components/messageinput";
+import MessageBox from "../../layout/messageBox";
 
 export default function chats(){
     return (
