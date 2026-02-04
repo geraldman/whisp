@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser } from "@/app/actions/auth";
+import { registerUserSimplified } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
 
 export default function RegisterPage() {
@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const result = await registerUser(email, password, username);
+      const result = await registerUserSimplified(email, password, username);
       
       if (result.success) {
         router.replace(routes.login);
@@ -34,7 +34,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div style={{ padding: 40, color: "#fff" }}>
+    <div>
       <h2>Register</h2>
 
       <input placeholder="Email" onChange={e => setEmail(e.target.value)} />

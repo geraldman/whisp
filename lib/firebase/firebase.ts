@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -15,3 +15,23 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+/**
+ * Fetches user encryption keys from Firestore for login
+ */
+export async function getUserEncryptionKeysSimplified(uid: string) {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  
+  if (!userDoc.exists()) {
+    throw new Error("User not found");
+  }
+  
+  const data = userDoc.data();
+  
+  return {
+    publicKey: data.publicKey,
+    encryptedPrivateKey: data.encryptedPrivateKey,
+    salt: data.salt,
+    iv: data.iv,
+  };
+}
