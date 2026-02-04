@@ -56,5 +56,7 @@ export async function loginAccountProcedureSimplified(
     
     console.log(privateKey);
 
-    return privateKey;
+    return{
+        privateKey: privateKey
+    }
 }

@@ -85,8 +85,10 @@ export async function loginUserSimplified(
       keys.salt
     );
 
-
-
+    /* LocalStorage or IndexedDB to keep all data */
+    const db = await getDB();
+    await db.put("keys", login.privateKey, "userPrivateKey");
+    
     return { 
       success: true, 
       uid,
