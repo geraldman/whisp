@@ -2,7 +2,7 @@ export const routes = {
   home: '/',
   login: '/login',
   register: '/register',
-  chats: '/chats',
+  chats: '/chat',
   profile: (username: string) => `/profile/${username}`,
 } as const;
 

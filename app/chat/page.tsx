@@ -1,12 +1,12 @@
 "use client";
 
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import MessageInput from "../../components/messageinput";
-import MessageBox from "../../layout/messageBox";
+import MessageInput from "../components/messageinput";
+import MessageBox from "../layout/messageBox";
 
 export default function chats(){
     const { loading, user } = useRequireAuth();
-
+    
     if (loading || !user) {
         return <div className="flex items-center justify-center h-screen">Loading...</div>;
     }
