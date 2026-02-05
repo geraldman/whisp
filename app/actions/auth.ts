@@ -2,7 +2,7 @@
 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
-import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
+import { auth, db, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
 import { generateUniqueNumericId } from "@/lib/generateUserId";
@@ -85,29 +85,23 @@ export async function loginUserSimplified(
   password: string,
 ) {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password); // if passed, then the password is correct
+    console.log("Starting login...");
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
+    console.log("Firebase auth successful, uid:", uid);
     
     // Fetch encryption keys from Firestore
     const keys = await getUserEncryptionKeysSimplified(uid);
-
-    const login = loginAccountProcedureSimplified(
-      password, 
-      keys.encryptedPrivateKey, 
-      keys.iv,
-      keys.salt
-    );
-
-    /* LocalStorage or IndexedDB to keep all data */
-    const db = await getDB();
-    await db.put("keys", login.privateKey, "userPrivateKey");
+    console.log("Fetched encryption keys from Firestore");
     
     return { 
       success: true, 
       uid,
+      encryptionKeys: keys,
     };
   } catch (error: any) {
-    return { success: false, error: "Email or password is incorrect" };
+    console.error("Login error:", error);
+    return { success: false, error: error.message || "Email or password is incorrect" };
   }
 }
 
@@ -119,3 +113,5 @@ export async function loginUser(email: string, password: string) {
     return { success: false, error: "Email or password is incorrect" };
   }
 }
+
+

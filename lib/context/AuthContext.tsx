@@ -21,13 +21,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthContext: Setting up auth listener");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("AuthContext: Auth state changed, user:", user?.uid || "null");
       setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  console.log("AuthContext: Rendering with user:", user?.uid || "null", "loading:", loading);
 
   return (
     <AuthContext.Provider value={{ user, uid: user?.uid || null, loading }}>
