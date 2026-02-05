@@ -1,22 +1,26 @@
 // app/actions/searchUser.ts
 "use server";
 
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/firebase";
+import { adminDb } from "@/lib/firebase/firebaseAdmin";
 
 export async function searchUserByNumericId(numericId: string) {
-  const indexSnap = await getDoc(
-    doc(db, "user_numeric_index", numericId)
-  );
+  const indexSnap = await adminDb
+    .collection("user_numeric_index")
+    .doc(numericId)
+    .get();
 
-  if (!indexSnap.exists()) return { found: false };
+  if (!indexSnap.exists) return { found: false };
 
-  const { uid } = indexSnap.data();
+  const { uid } = indexSnap.data() as { uid: string };
 
-  const userSnap = await getDoc(doc(db, "users", uid));
-  if (!userSnap.exists()) throw new Error("Corrupt index");
+  const userSnap = await adminDb.collection("users").doc(uid).get();
+  if (!userSnap.exists) throw new Error("Corrupt index");
 
-  const data = userSnap.data();
+  const data = userSnap.data() as {
+    uid: string;
+    numericId: string;
+    username: string;
+  };
 
   return {
     found: true,
