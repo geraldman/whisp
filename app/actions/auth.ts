@@ -5,6 +5,8 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
+import { generateUniqueNumericId } from "@/lib/generateUserId";
+
 
 export async function registerUserSimplified(
   email: string,
@@ -15,11 +17,13 @@ export async function registerUserSimplified(
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const encryptionResult = await createAccountProcedureSimplified(password);
     const user = userCredential.user;
+    const numericId = await generateUniqueNumericId();
 
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       email,
       username,
+      numericId,
       username_lower: username.toLowerCase(),
       createdAt: serverTimestamp(),
       publicKey: encryptionResult.publicKey,
@@ -30,7 +34,7 @@ export async function registerUserSimplified(
 
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: string(error) };
   }
 }
 
@@ -46,6 +50,7 @@ export async function registerUser(
     const encryptProcedure = createAccountProcedure(password);// take the password to PBKDF2, salt = ??
 
     const user = userCredential.user;
+    const numericId = await generateUniqueNumericId();
 
     // Save user profile to Firestore
     await setDoc(doc(db, "users", user.uid), {
@@ -58,6 +63,7 @@ export async function registerUser(
       encryptedPrivateKey: (await encryptProcedure).encryptedPrivateKey,
       keyEncryptionSalt: (await encryptProcedure).salt,
       keyEncryptionNonce: (await encryptProcedure).nonce,
+      numericId,
     });
 
     return { success: true };
