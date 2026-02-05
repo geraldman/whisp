@@ -1,11 +1,12 @@
 "use server";
 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
 import { generateUniqueNumericId } from "@/lib/generateUserId";
+
 
 export async function registerUserSimplified(
   email: string,
@@ -16,11 +17,11 @@ export async function registerUserSimplified(
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const encryptionResult = await createAccountProcedureSimplified(password);
     const user = userCredential.user;
-
+    const batch = writeBatch(db);
     const numericId = await generateUniqueNumericId();
 
     // Save user profile to Firestore 
-    await setDoc(doc(db, "users", user.uid), {
+    batch.set(doc(db, "users", user.uid), {
       uid: user.uid,
       email,
       username,
@@ -32,6 +33,13 @@ export async function registerUserSimplified(
       salt: encryptionResult.salt,
       numericId,
     });
+
+    batch.set(doc(db, "user_numeric_index", numericId), {
+      uid: user.uid,
+      createdAt: serverTimestamp(),
+      });
+
+      await batch.commit();
 
     return { success: true };
   } catch (error: any) {
