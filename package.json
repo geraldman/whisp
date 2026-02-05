@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "firebase": "^12.8.0",
+    "firebase-admin": "^13.6.1",
     "idb": "^8.0.3",
     "libsodium-wrappers": "^0.8.2",
     "next": "^16.1.6",
