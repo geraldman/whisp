@@ -4,13 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already logged in
+  if (user) {
+    router.replace(routes.chats);
+    return null;
+  }
 
   async function handleLogin() {
     setError("");
@@ -20,7 +28,8 @@ export default function LoginPage() {
       const result = await loginUser(email, password);
       
       if (result.success) {
-        /** open session key */
+        // Wait a bit for auth state to propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
         router.replace(routes.chats);
       } else {
         setError(result.error || "Login failed");
