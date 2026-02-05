@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { getUserKeys } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
 import { useAuth } from "@/lib/context/AuthContext";
-import { loginAccountProcedureSimplified } from "@/lib/crypto";
 import { getDB } from "@/lib/db/indexeddb";
-import { auth, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase/firebase";
+import { deriveKeyFromPassword } from "@/lib/crypto/keyStore";
+import { aesDecrypt } from "@/lib/crypto/aes";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,50 +22,62 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log("User already logged in, redirecting...");
-      // TODO: Replace 'default' with actual chatId from user's chat list
-      router.replace(routes.chat('default'));
+    if (user) {
+      router.replace(routes.chats);
     }
-  }, [user, authLoading, router]);
+  }, [user, router]);
 
   async function handleLogin() {
     setError("");
     setLoading(true);
 
     try {
-      console.log("Starting login process...");
-      
-      // Sign in directly on client-side for proper persistence
+      // Step 1: Authenticate with Firebase (verifies password)
+      console.log("Authenticating with Firebase...");
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
-      console.log("Firebase auth successful, uid:", uid);
       
-      // Fetch encryption keys
-      const keys = await getUserEncryptionKeysSimplified(uid);
-      console.log("Fetched encryption keys");
+      // Step 2: Fetch encrypted keys from server
+      console.log("Fetching encrypted keys...");
+      const keysResult = await getUserKeys(uid);
       
-      // Decrypt private key
-      console.log("Decrypting private key...");
-      const login = await loginAccountProcedureSimplified(
-        password, 
-        keys.encryptedPrivateKey, 
-        keys.iv,
-        keys.salt
+      if (!keysResult.success) {
+        setError(keysResult.error || "Failed to fetch keys");
+        return;
+      }
+      
+      // Step 3: Decrypt private key on CLIENT (password never sent to server for crypto)
+      console.log("Decrypting private key on client...");
+      const kdfPassword = await deriveKeyFromPassword(password, keysResult.salt);
+      
+      const ivArray = Array.from(Uint8Array.from(atob(keysResult.iv), c => c.charCodeAt(0)));
+      const dataArray = Array.from(Uint8Array.from(atob(keysResult.encryptedPrivateKey), c => c.charCodeAt(0)));
+      
+      const decryptedPrivateKeyBase64 = await aesDecrypt(kdfPassword, ivArray, dataArray);
+      
+      // Step 4: Import as CryptoKey
+      const privateKeyBuffer = Uint8Array.from(atob(decryptedPrivateKeyBase64), c => c.charCodeAt(0));
+      const privateKey = await crypto.subtle.importKey(
+        "pkcs8",
+        privateKeyBuffer,
+        { name: "RSA-OAEP", hash: "SHA-256" },
+        true,
+        ["decrypt"]
       );
-      console.log("Private key decrypted successfully");
-      
-      // Save to IndexedDB
+
+      // Step 5: Store in IndexedDB (client-side only)
+      console.log("Storing keys in IndexedDB...");
       const db = await getDB();
-      await db.put("keys", login.privateKey, "userPrivateKey");
-      console.log("Private key saved to IndexedDB");
+      await db.put("keys", privateKey, "userPrivateKey");
+      await db.put("keys", keysResult.publicKey, "userPublicKey");
       
-      // Auth state will update automatically, which will trigger redirect in useEffect
-      console.log("Login complete, waiting for auth state update...");
-      
+      // Wait for auth state to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log("Login successful!");
+      router.replace(routes.chats);
     } catch (err: any) {
-      console.error("Login error:", err);
-      setError("Email or password is incorrect");
+      console.error("Login exception:", err);
+      setError(err.message || "An error occurred during login");
     } finally {
       setLoading(false);
     }
