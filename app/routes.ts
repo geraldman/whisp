@@ -1,3 +1,4 @@
+import { searchUserByNumericId } from "./actions/searchUser";
 import chats from "./chat/page";
 
 export const routes = {
@@ -5,6 +6,7 @@ export const routes = {
   login: '/login',
   register: '/register',
   chats: '/chat',
+ search: '/chat/search',
   chat: (chatId: string) => `/chat/${chatId}`,
   profile: (username: string) => `/profile/${username}`,
 } as const;

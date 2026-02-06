@@ -1,4 +1,4 @@
-import MessageComponent from "../components/messageComponent";
+import MessageComponent from "../chat/components/messageComponent";
 
 function messageBox(){
     return (

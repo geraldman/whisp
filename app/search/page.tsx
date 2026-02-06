@@ -75,7 +75,7 @@ export default function SearchUserPage() {
 
           {/* future action */}
           <button style={{ marginTop: 8 }}>
-            Add / Start Chat
+            Add Friend / Start Chat
           </button>
         </div>
       )}
