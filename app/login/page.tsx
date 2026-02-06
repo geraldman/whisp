@@ -98,7 +98,7 @@ export default function LoginPage() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <button onClick={handleLogin} disabled={loading}>
-        {loading ? "Logging in..." : "Login"}
+        {loading ? "Logging in..." : "login"}
       </button>
     </div>
   );

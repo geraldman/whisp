@@ -1,3 +1,5 @@
+import chats from "./chat/page";
+
 export const routes = {
   home: '/',
   login: '/login',
