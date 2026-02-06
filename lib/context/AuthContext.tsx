@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
+import { getDB } from "@/lib/db/indexeddb";
 
 interface AuthContextType {
   user: User | null;
@@ -21,14 +22,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Step 1: Check IndexedDB first for faster initial auth state
+    async function checkIndexedDB() {
+      try {
+        const db = await getDB();
+        const hasKeys = await db.get("keys", "userPrivateKey");
+        
+        if (hasKeys && isMounted) {
+          console.log("AuthContext: Found keys in IndexedDB, user likely logged in");
+          // Don't set loading to false yet, wait for Firebase confirmation
+        }
+      } catch (error) {
+        console.error("AuthContext: Failed to check IndexedDB:", error);
+      }
+    }
+
+    checkIndexedDB();
+
+    // Step 2: Set up Firebase auth listener (source of truth)
     console.log("AuthContext: Setting up auth listener");
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("AuthContext: Auth state changed, user:", user?.uid || "null");
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("AuthContext: Auth state changed, user:", firebaseUser?.uid || "null");
+      
+      if (!isMounted) return;
+
+      if (firebaseUser) {
+        // User is logged in via Firebase
+        setUser(firebaseUser);
+        setLoading(false);
+      } else {
+        // User is NOT logged in via Firebase - clear IndexedDB
+        console.log("AuthContext: No Firebase user, clearing IndexedDB");
+        try {
+          const db = await getDB();
+          await db.delete("keys", "userPrivateKey");
+          await db.delete("keys", "userPublicKey");
+        } catch (error) {
+          console.error("AuthContext: Failed to clear IndexedDB:", error);
+        }
+        setUser(null);
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   console.log("AuthContext: Rendering with user:", user?.uid || "null", "loading:", loading);

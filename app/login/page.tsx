@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUserKeys } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
@@ -75,6 +74,7 @@ export default function LoginPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
       console.log("Login successful!");
       router.replace(routes.chats);
+
     } catch (err: any) {
       console.error("Login exception:", err);
       setError(err.message || "An error occurred during login");

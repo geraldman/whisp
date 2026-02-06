@@ -1,7 +1,7 @@
 "use client";
 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp, writeBatch } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch, getDoc } from "firebase/firestore";
 import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
@@ -63,7 +63,7 @@ export async function getUserKeys(uid: string) {
       salt: data.salt,
     };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: "Firebase Login Error: " + error.message };
   }
 }
 

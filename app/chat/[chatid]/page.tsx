@@ -1,31 +1,32 @@
 "use client";
 
-import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import { useParams } from "next/navigation";
 import MessageInput from "../../components/messageinput";
 import MessageBox from "../../layout/messageBox";
 
-export default function chats(){
-    const { loading, user } = useRequireAuth();
-
-    if (loading || !user) {
-        return <div className="flex items-center justify-center h-screen">Loading...</div>;
-    }
+export default function ChatDetailPage() {
+    const params = useParams();
+    const chatId = params.chatid as string;
 
     return (
-        <div className="w-full flex flex-row h-screen">
-            <div className="w-3/10"> 
-                <h1>Hello ${user?.username}</h1>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            {/* Chat Header */}
+            <div style={{ 
+                padding: "15px", 
+                borderBottom: "1px solid #ccc",
+                fontWeight: "bold" 
+            }}>
+                Chat ID: {chatId}
             </div>
-            <div className="w-7/10 flex flex-col h-full border-1 border-solid">
-                <div className="h-[5%]">
 
-                </div>
-                <div className="flex-1 overflow-y-scroll">
-                    <MessageBox/>
-                </div>
-                <div className="h-auto ">
-                    <MessageInput/>
-                </div>
+            {/* Messages Area */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+                <MessageBox />
+            </div>
+
+            {/* Message Input */}
+            <div style={{ padding: "15px", borderTop: "1px solid #ccc" }}>
+                <MessageInput />
             </div>
         </div>
     );
