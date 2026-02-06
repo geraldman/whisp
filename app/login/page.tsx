@@ -22,7 +22,7 @@ export default function LoginPage() {
     if (!authLoading && user) {
       console.log("User already logged in, redirecting...");
       // TODO: Replace 'default' with actual chatId from user's chat list
-      router.replace(routes.chat('default'));
+      router.replace(routes.chat('chats'));
     }
   }, [user, authLoading, router]);
 
@@ -83,7 +83,7 @@ export default function LoginPage() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <button onClick={handleLogin} disabled={loading}>
-        {loading ? "Logging in..." : "Login"}
+        {loading ? "Logging in..." : "login"}
       </button>
     </div>
   );

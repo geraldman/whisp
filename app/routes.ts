@@ -1,7 +1,10 @@
+import chats from "./chat/page";
+
 export const routes = {
   home: '/',
   login: '/login',
   register: '/register',
+  chats: '/chats',
   chat: (chatId: string) => `/chat/${chatId}`,
   profile: (username: string) => `/profile/${username}`,
 } as const;
