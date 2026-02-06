@@ -44,19 +44,9 @@ export async function loginAccountProcedureSimplified(
     
     const decryptedPrivateKeyBase64 = await aesDecrypt(kdfPassword, ivArray, dataArray);
     
-    // Convert base64 to ArrayBuffer and import as CryptoKey
-    const privateKeyBuffer = Uint8Array.from(atob(decryptedPrivateKeyBase64), c => c.charCodeAt(0));
-    const privateKey = await crypto.subtle.importKey(
-        "pkcs8",
-        privateKeyBuffer,
-        { name: "RSA-OAEP", hash: "SHA-256" },
-        true,
-        ["decrypt"]
-    );
-    
-    console.log(privateKey);
-
-    return{
-        privateKey: privateKey
+    // Return the base64-encoded private key directly
+    // It will be imported as CryptoKey on the client side
+    return {
+        privateKeyPKCS8: decryptedPrivateKeyBase64
     }
 }

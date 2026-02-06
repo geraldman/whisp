@@ -40,6 +40,3 @@ export async function getDB() {
   
   return dbInstance;
 }
-
-// Legacy export for backward compatibility
-export const dbPromise = getDB();

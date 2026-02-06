@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUserSimplified } from "@/app/actions/auth";
+import { storeUserKeys } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
+import { createAccountProcedureSimplified } from "@/lib/crypto";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase/firebase";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,14 +22,35 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const result = await registerUserSimplified(email, password, username);
+      // Step 1: Create Firebase user
+      console.log("Creating Firebase user...");
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+      
+      // Step 2: Do all crypto on CLIENT (password never sent to server for crypto)
+      console.log("Generating encryption keys on client...");
+      const encryptionResult = await createAccountProcedureSimplified(password);
+      
+      // Step 3: Send only encrypted keys to server for storage
+      console.log("Storing encrypted keys...");
+      const result = await storeUserKeys(
+        uid,
+        email,
+        username,
+        encryptionResult.publicKey,
+        encryptionResult.encryptedPrivateKey,
+        encryptionResult.iv,
+        encryptionResult.salt
+      );
       
       if (result.success) {
+        console.log("Registration successful!");
         router.replace(routes.login);
       } else {
-        setError(result.error || "Registration failed");
+        setError("Registration Failed: "+ result.error || "Registration failed");
       }
     } catch (err: any) {
+      console.error("Registration error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
