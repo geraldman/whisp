@@ -2,7 +2,7 @@
 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, writeBatch, getDoc } from "firebase/firestore";
-import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
+import { auth, db, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
 import { generateUniqueNumericId } from "@/lib/generateUserId";

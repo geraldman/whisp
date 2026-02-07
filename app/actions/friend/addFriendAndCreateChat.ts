@@ -15,11 +15,17 @@ export async function addFriendAndCreateChat(
     .doc(currentUid)
     .get();
 
-    if (!userSnap.exists) {
-      throw new Error("Current user not found");}
+  if (!userSnap.exists) {
+    throw new Error("Current user not found");
+  }
 
-const fromUser = userSnap.data();
-const fromUsername = fromUser.username;
+  const fromUser = userSnap.data();
+
+  if (!fromUser) {
+    throw new Error("User data is missing");
+  }
+
+  const fromUsername = fromUser.username;
   // 1️⃣ CEK CHAT SUDAH ADA ATAU BELUM
   const chatQuery = await adminDb
     .collection("chats")

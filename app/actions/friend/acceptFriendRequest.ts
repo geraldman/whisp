@@ -16,6 +16,10 @@ export async function acceptFriendRequest(requestId: string) {
 
   const data = requestSnap.data();
 
+  if (!data) {
+    throw new Error("Friend request data is missing");
+  }
+
   if (data.status !== "pending") {
     throw new Error("Request already handled");
   }

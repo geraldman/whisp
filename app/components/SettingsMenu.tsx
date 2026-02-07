@@ -16,8 +16,10 @@ export default function SettingsMenu() {
 useEffect(() => {
   if (!user?.uid) return;
 
+  const userId = user.uid; // Capture uid to avoid null issues
+
   async function load() {
-    const data = await getIncomingFriendRequests(user.uid);
+    const data = await getIncomingFriendRequests(userId);
 
     // 🔒 HANYA REQUEST YANG PUNYA USERNAME
     const validRequests = data.filter(

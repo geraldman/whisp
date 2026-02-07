@@ -36,9 +36,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
-/* =========================
-   RESULT VIEW (KANAN)
-   ========================= */
+/*RESULT VIEW (KANAN)*/
 function SearchResultView({ result }: any) {
   const router = useRouter();
   const { user } = useRequireAuth();
@@ -46,6 +44,11 @@ function SearchResultView({ result }: any) {
   const [error, setError] = useState("");
 
   async function handleAddFriend() {
+    if (!user) {
+      setError("You must be logged in");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
