@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { searchUserByNumericId } from "@/app/actions/searchUser";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import LoadingScreen from "@/app/components/LoadingScreen"
 
 export default function SearchUserPage() {
+  const { user, loadAuth } = useRequireAuth();
+  
+  // All hooks MUST be called before any conditional returns
   const [numericId, setNumericId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,6 +17,11 @@ export default function SearchUserPage() {
     username: string;
     numericId: string;
   }>(null);
+
+  // Now we can do conditional returns
+  if (loadAuth || !user) {
+    return <LoadingScreen />;
+  }
 
   async function handleSearch() {
     setError("");

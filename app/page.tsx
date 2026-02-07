@@ -3,16 +3,13 @@
 import Link from "next/link";
 import { routes } from "./routes";
 import { useAuth } from "@/lib/context/AuthContext";
+import LoadingScreen from "./components/LoadingScreen";
 
 function page(){
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return <div className="w-screen h-screen flex flex-col items-center justify-center gap-10">
