@@ -6,6 +6,7 @@ import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
 import { generateUniqueNumericId } from "@/lib/generateUserId";
+import { getDB } from "@/lib/db/indexeddb";
 
 // Server action to store encrypted keys (crypto already done on client)
 export async function storeUserKeys(

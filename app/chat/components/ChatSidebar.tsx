@@ -3,7 +3,7 @@
 import ProfileSection from "./ProfileSection";
 import SearchUser from "./SearchUser";
 
-export default function ChatSidebar({ user }: any) {
+export default function ChatSidebar({ user, onSearchResult }: any) {
   return (
     <aside
       style={{
@@ -14,7 +14,8 @@ export default function ChatSidebar({ user }: any) {
       }}
     >
       <ProfileSection user={user} />
-      <SearchUser />
+
+      <SearchUser onSearchResult={onSearchResult} />
     </aside>
   );
 }
