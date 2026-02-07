@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import ChatSidebar from "./components/ChatSidebar";
+import ChatSidebar from "../components/ChatSidebar";
 import { addFriendAndCreateChat } from "@/app/actions/addFriendAndCreateChat";
 import { useRouter } from "next/navigation";
 
