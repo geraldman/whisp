@@ -4,12 +4,7 @@ import { User, numbericid } from "@/firebase/firebase";
 
 export default function ProfileSection({ user }: any) {
   return (
-    <div
-      style={{
-        padding: 16,
-        borderBottom: "1px solid #eee",
-      }}
-    >
+    <div>
       <strong>{user?.email}</strong>
 
       <div style={{ marginTop: 6, fontSize: 14, color: "#555" }}>

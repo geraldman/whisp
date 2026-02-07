@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { storeUserKeys } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
 import { createAccountProcedureSimplified } from "@/lib/crypto";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
 
 export default function RegisterPage() {
@@ -45,6 +45,9 @@ export default function RegisterPage() {
       
       if (result.success) {
         console.log("Registration successful!");
+        // Sign out the user immediately after registration
+        // Firebase's createUserWithEmailandPassword automatically sign in
+        await signOut(auth);
         router.replace(routes.login);
       } else {
         setError("Registration Failed: "+ result.error || "Registration failed");

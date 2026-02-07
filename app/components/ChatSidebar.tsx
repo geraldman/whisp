@@ -2,19 +2,18 @@
 
 import ProfileSection from "./ProfileSection";
 import SearchUser from "./SearchUser";
+import Link from "next/link";
 
 export default function ChatSidebar({ user }: any) {
   return (
-    <aside
-      style={{
-        width: 320,
-        borderRight: "1px solid #ddd",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="w-80 border-r border-gray-300 flex flex-col p-5 gap-5">
       <ProfileSection user={user} />
       <SearchUser />
-    </aside>
+      <div className="mt-auto">
+        <Link href="/logout">
+          <button>Logout</button>
+        </Link>
+      </div>
+    </div>
   );
 }

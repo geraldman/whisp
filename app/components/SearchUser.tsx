@@ -29,7 +29,7 @@ export default function SearchUser() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div>
 
 
       <input
