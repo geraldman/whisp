@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import ChatSidebar from "../components/ChatSidebar";
-import { addFriendAndCreateChat } from "@/app/actions/addFriendAndCreateChat";
+import { addFriendAndCreateChat } from "@/app/actions/friend/addFriendAndCreateChat";
 import { useRouter } from "next/navigation";
 
 
@@ -57,8 +57,11 @@ function SearchResultView({ result }: any) {
 
       router.push(`/chat/${res.chatId}`);
     } catch (err: any) {
-      setError("Failed to start chat");
-    } finally {
+  console.error(err);
+  setError(err?.message || "Failed to start chat");
+}
+
+    finally {
       setLoading(false);
     }
   }
