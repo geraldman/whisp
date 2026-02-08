@@ -4,15 +4,13 @@ import { useState } from "react";
 import { searchUserByNumericId } from "@/app/actions/searchUser";
 import { useRouter } from "next/navigation";
 
-export default function SearchUser() {
+
+export default function SearchUser({ onSearchResult }: any) {
   const [numericId, setNumericId] = useState("");
-  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   async function handleSearch() {
     setError("");
-    setResult(null);
 
     if (!/^\d{8}$/.test(numericId)) {
       setError("Numeric ID harus 8 digit");
@@ -23,50 +21,47 @@ export default function SearchUser() {
 
     if (!res.found) {
       setError("User tidak ditemukan");
+      onSearchResult(null);
     } else {
-      setResult(res.user);
+      onSearchResult(res.user); // 🔴 KIRIM KE LAYOUT
     }
   }
 
   return (
-    <div>
-
-
-      <input
-        value={numericId}
-        onChange={(e) => setNumericId(e.target.value)}
-        placeholder="Search User"
-        style={{ width: "100%", padding: 8 }}
-      />
-
-      <button
-        onClick={handleSearch}
-        style={{ marginTop: 8, width: "100%" }}
+    <div style={{ padding: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          border: "1px solid #ccc",
+          borderRadius: 20,
+          overflow: "hidden",
+        }}
       >
-        Search
-      </button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {result && (
-        <div
+        <input
+          value={numericId}
+          onChange={(e) => setNumericId(e.target.value)}
+          placeholder="Numeric ID"
           style={{
-            marginTop: 12,
-            padding: 12,
-            border: "1px solid #ccc",
+            flex: 1,
+            padding: "10px 14px",
+            border: "none",
+            outline: "none",
+          }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{
+            width: 48,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
           }}
         >
-          <p><strong>Username:</strong> {result.username}</p>
-          <p><strong>Numeric ID:</strong> {result.numericId}</p>
+          🔍
+        </button>
+      </div>
 
-          <button
-            style={{ marginTop: 8 }}
-            onClick={() => router.push(`/chat/${result.uid}`)}
-          >
-            Add Friend / Start Chat
-          </button>
-        </div>
-      )}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
