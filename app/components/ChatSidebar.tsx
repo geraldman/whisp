@@ -1,6 +1,7 @@
 "use client";
 
 import ProfileSection from "./ProfileSection";
+import ChatList from "./ChatList";
 
 export default function ChatSidebar({
   user,
@@ -22,6 +23,9 @@ export default function ChatSidebar({
         user={user}
         onOpenFriendRequests={onOpenFriendRequests}
       />
+
+      {/* 🔽 CHAT LIST */}
+      <ChatList user={user} />
     </aside>
   );
 }

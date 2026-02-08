@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import ChatSidebar from "../components/ChatSidebar";
 import FriendRequestsView from "../chat/views/FriendRequestsView";
+import ChatDetailPage from "./[chatid]/page";
 
-type RightView = "idle" | "friendRequests";
+type RightView = "idle" | "friendRequests" | "ChatDetailPage";
 
 export default function ChatLayout({
   children,
@@ -33,6 +34,8 @@ export default function ChatLayout({
       <main style={{ flex: 1, padding: 20 }}>
         {view === "friendRequests" ? (
           <FriendRequestsView />
+        ) : view === "ChatDetailPage" ? (
+          <ChatDetailPage />
         ) : (
           children
         )}

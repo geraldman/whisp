@@ -1,4 +1,79 @@
+//test code
 "use client";
+
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  updateDoc,
+  doc,
+  arrayUnion,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase/firebase";
+
+export default function MessageInput() {
+  const { user } = useRequireAuth();
+  const params = useParams();
+  const chatId = params.chatid as string;
+
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function sendMessage() {
+    if (!text.trim() || !user?.uid) return;
+
+    setLoading(true);
+
+    try {
+      // 🔐 NANTI: encryptText(text)
+      const encryptedText = text; // sementara plaintext
+
+      // 1️⃣ Tulis message
+      await addDoc(
+        collection(db, "chats", chatId, "messages"),
+        {
+          senderId: user.uid,
+          encryptedText,
+          createdAt: serverTimestamp(),
+          readBy: [user.uid],
+        }
+      );
+
+      // 2️⃣ Update lastMessage di chat
+      await updateDoc(doc(db, "chats", chatId), {
+        lastMessage: encryptedText,
+        lastMessageAt: serverTimestamp(),
+      });
+
+      setText("");
+    } catch (e) {
+      console.error("Send message error:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Type a message"
+        style={{ flex: 1, padding: 10 }}
+      />
+      <button onClick={sendMessage} disabled={loading}>
+        Send
+      </button>
+    </div>
+  );
+}
+
+
+//kode gerald
+/*"use client";
 
 import { useState } from "react";
 
@@ -27,4 +102,4 @@ function messageInput(){
     ) 
 }
 
-export default messageInput;
+export default messageInput;*/
