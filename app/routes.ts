@@ -5,6 +5,7 @@ export const routes = {
   home: '/',
   login: '/login',
   register: '/register',
+  logout: 'logout',
   chats: '/chat',
  search: '/chat/search',
   chat: (chatId: string) => `/chat/${chatId}`,

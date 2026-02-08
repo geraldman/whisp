@@ -1,4 +1,4 @@
-import MessageComponent from "../components/messageComponent";
+import MessageComponent from "@/app/components/messageComponent";
 
 function messageBox(){
     return (

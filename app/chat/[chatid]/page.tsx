@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import MessageInput from "../../components/messageinput";
+import MessageInput from "@/app/components/messageinput";
 import MessageBox from "../../layout/messageBox";
 
 export default function ChatDetailPage() {

@@ -46,7 +46,7 @@ useEffect(() => {
         background: "#fff",
       }}
     >
-            <p style={{ cursor: "pointer" }}>Profile</p>
+      <p style={{ cursor: "pointer" }}>Profile</p>
       <p style={{ cursor: "pointer" }}>Settings</p>
       <p><strong>Friend Requests</strong></p>
 
@@ -79,4 +79,3 @@ useEffect(() => {
     </div>
   );
 }
-

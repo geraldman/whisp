@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { routes } from "@/app/routes";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import ChatSidebar from "../components/ChatSidebar";
+import ChatSidebar from ".@/app/components/ChatSidebar";
 import { addFriendAndCreateChat } from "@/app/actions/friend/addFriendAndCreateChat";
 import { useRouter } from "next/navigation";
-
+import LoadingScreen from "@/app/components/LoadingScreen";
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useRequireAuth();
@@ -13,7 +15,12 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
   // 🔴 STATE GLOBAL SEARCH RESULT
   const [searchResult, setSearchResult] = useState<any>(null);
 
-  if (loading) return null;
+  // 🔴 STATE GLOBAL SEARCH RESULT
+  const [searchResult, setSearchResult] = useState<any>(null);
+
+  if (loading || !user) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
