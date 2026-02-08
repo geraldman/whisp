@@ -5,7 +5,13 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import SettingsMenu from "./SettingsMenu";
 
-export default function ProfileSection({ user }: any) {
+export default function ProfileSection({
+  user,
+  onOpenFriendRequests,
+}: {
+  user: any;
+  onOpenFriendRequests: () => void;
+}) {
   const [profile, setProfile] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
 
@@ -14,22 +20,15 @@ export default function ProfileSection({ user }: any) {
 
     async function fetchProfile() {
       const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists()) {
-        setProfile(snap.data());
-      }
+      if (snap.exists()) setProfile(snap.data());
     }
 
     fetchProfile();
   }, [user?.uid]);
 
   return (
-    <div
-      style={{
-        padding: 16,
-        borderBottom: "1px solid #eee",
-      }}
-    >
-      {/* EMAIL + SETTINGS */}
+    <div style={{ padding: 16, borderBottom: "1px solid #eee" }}>
+      {/* EMAIL + ICONS */}
       <div
         style={{
           display: "flex",
@@ -38,12 +37,25 @@ export default function ProfileSection({ user }: any) {
         }}
       >
         <strong>{user?.email}</strong>
-        <span
-          style={{ cursor: "pointer" }}
-          onClick={() => setOpenSettings((v) => !v)}
-        >
-          ⚙️
-        </span>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          {/* 🔔 FRIEND REQUESTS (TOGGLE) */}
+          <span
+            style={{ cursor: "pointer" }}
+            onClick={onOpenFriendRequests}
+            title="Friend Requests"
+          >
+            🔔
+          </span>
+
+          {/* ⚙️ SETTINGS */}
+          <span
+            style={{ cursor: "pointer" }}
+            onClick={() => setOpenSettings((v) => !v)}
+          >
+            ⚙️
+          </span>
+        </div>
       </div>
 
       {/* USER INFO */}

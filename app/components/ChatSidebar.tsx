@@ -1,9 +1,14 @@
 "use client";
 
 import ProfileSection from "./ProfileSection";
-import SearchUser from "./SearchUser";
 
-export default function ChatSidebar({ user, onSearchResult }: any) {
+export default function ChatSidebar({
+  user,
+  onOpenFriendRequests,
+}: {
+  user: any;
+  onOpenFriendRequests: () => void;
+}) {
   return (
     <aside
       style={{
@@ -13,9 +18,10 @@ export default function ChatSidebar({ user, onSearchResult }: any) {
         flexDirection: "column",
       }}
     >
-      <ProfileSection user={user} />
-
-      <SearchUser onSearchResult={onSearchResult} />
+      <ProfileSection
+        user={user}
+        onOpenFriendRequests={onOpenFriendRequests}
+      />
     </aside>
   );
 }

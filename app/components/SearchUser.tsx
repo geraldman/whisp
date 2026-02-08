@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { searchUserByNumericId } from "@/app/actions/searchUser";
-import { useRouter } from "next/navigation";
 
-
-export default function SearchUser({ onSearchResult }: any) {
+export default function SearchUser({
+  onSearchResult,
+}: {
+  onSearchResult: (result: any | null) => void;
+}) {
   const [numericId, setNumericId] = useState("");
   const [error, setError] = useState("");
 
@@ -23,7 +25,7 @@ export default function SearchUser({ onSearchResult }: any) {
       setError("User tidak ditemukan");
       onSearchResult(null);
     } else {
-      onSearchResult(res.user); // 🔴 KIRIM KE LAYOUT
+      onSearchResult(res.user); // 🔴 KIRIM KE FRIEND REQUEST VIEW
     }
   }
 
@@ -39,7 +41,16 @@ export default function SearchUser({ onSearchResult }: any) {
       >
         <input
           value={numericId}
-          onChange={(e) => setNumericId(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setNumericId(val);
+
+            // 🔁 JIKA INPUT DIKOSONGKAN → BALIK KE LIST
+            if (val.trim() === "") {
+              setError("");
+              onSearchResult(null);
+            }
+          }}
           placeholder="Numeric ID"
           style={{
             flex: 1,
@@ -61,7 +72,7 @@ export default function SearchUser({ onSearchResult }: any) {
         </button>
       </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red", marginTop: 6 }}>{error}</p>}
     </div>
   );
 }

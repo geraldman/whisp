@@ -3,95 +3,40 @@
 import { useState } from "react";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import ChatSidebar from "../components/ChatSidebar";
-import { addFriendAndCreateChat } from "@/app/actions/friend/addFriendAndCreateChat";
-import { useRouter } from "next/navigation";
+import FriendRequestsView from "../chat/views/FriendRequestsView";
 
+type RightView = "idle" | "friendRequests";
 
-export default function ChatLayout({ children }: { children: React.ReactNode }) {
+export default function ChatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user, loading } = useRequireAuth();
-
-  // 🔴 STATE GLOBAL SEARCH RESULT
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [view, setView] = useState<RightView>("idle");
 
   if (loading) return null;
+
+  function toggleFriendRequests() {
+    setView((v) => (v === "friendRequests" ? "idle" : "friendRequests"));
+  }
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
       {/* LEFT */}
       <ChatSidebar
         user={user}
-        onSearchResult={setSearchResult}
+        onOpenFriendRequests={toggleFriendRequests}
       />
 
       {/* RIGHT */}
       <main style={{ flex: 1, padding: 20 }}>
-        {/* Kalau ada hasil search → override children */}
-        {searchResult ? (
-          <SearchResultView result={searchResult} />
+        {view === "friendRequests" ? (
+          <FriendRequestsView />
         ) : (
           children
         )}
       </main>
-    </div>
-  );
-}
-
-/*RESULT VIEW (KANAN)*/
-function SearchResultView({ result }: any) {
-  const router = useRouter();
-  const { user } = useRequireAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function handleAddFriend() {
-    if (!user) {
-      setError("You must be logged in");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      const res = await addFriendAndCreateChat(
-        user.uid,
-        result.uid
-      );
-
-      router.push(`/chat/${res.chatId}`);
-    } catch (err: any) {
-  console.error(err);
-  setError(err?.message || "Failed to start chat");
-}
-
-    finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div style={{ border: "1px solid #ccc", padding: 24, width: 400 }}>
-        <p><strong>Username:</strong> {result.username}</p>
-        <p><strong>Numeric ID:</strong> {result.numericId}</p>
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        <button
-          onClick={handleAddFriend}
-          disabled={loading}
-          style={{ marginTop: 12, width: "100%" }}
-        >
-          {loading ? "Starting chat..." : "Add Friend / Start Chat"}
-        </button>
-      </div>
     </div>
   );
 }
