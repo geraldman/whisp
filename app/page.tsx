@@ -1,18 +1,159 @@
+"use client";
+
 import Link from "next/link";
-import { routes } from "./routes";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
-function page(){
-  return <div className="w-screen h-screen flex flex-col items-center justify-center gap-10">
-    <h1>Hello Whisp</h1>
-    <div className="flex flex-row gap-10">
-      <Link href={routes.login}>
-        <button>Login</button>
-      </Link>
-      <Link href={routes.register}>
-        <button>Register</button>
-      </Link>
-    </div>
-  </div>
+import LiquidEtherBG from "./components/background";
+import AvatarGroup from "./components/avatarGroup";
+
+export default function Home() {
+  return (
+    <main className="w-screen h-screen overflow-hidden relative">
+
+      {/* Background */}
+      <div className="absolute inset-0 bg-[#F8F4E1] z-10 pointer-events-none">
+        <LiquidEtherBG
+          colors={["#5C3A21", "#AF8F6F", "#F8F4E1"]}
+          mouseForce={20}
+          cursorSize={100}
+        />
+      </div>
+
+      {/* Logo */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="absolute top-6 left-20 z-30 flex items-center gap-2"
+      >
+        <Image
+          src="/logo.png"
+          alt="WHISP Logo"
+          width={160}
+          height={60}
+          className="object-contain"
+        />
+      </motion.div>
+
+      {/* Avatar */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+        className="absolute top-6 right-20 z-30 flex items-center gap-2"
+      >
+        <AvatarGroup />
+      </motion.div>
+
+      {/* Content */}
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4">
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-5xl font-semibold tracking-tight text-[#5C3A21] -mt-10 max-w-xl text-center"
+        >
+          Secure Messaging for Everyday Conversations
+        </motion.h1>
+
+        {/* Description */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
+          className="text-black mt-6 text-center max-w-xl leading-relaxed"
+        >
+          Privacy-first messaging app powered by end-to-end encryption,
+          so only you and your recipient can read what’s shared.
+        </motion.p>
+
+        {/* Buttons */}
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: {},
+            show: {
+              transition: {
+                staggerChildren: 0.15,
+              },
+            },
+          }}
+          className="flex gap-6 mt-16"
+        >
+          {/* Login */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
+            <Link href="/login">
+              <button
+                className="
+                  cursor-pointer
+                  w-40 px-8 py-3 rounded-xl
+                  bg-[#74512D]
+                  text-white font-medium
+                  shadow-md shadow-black/20
+                  transition-all duration-300 ease-out
+                  hover:-translate-y-1
+                  hover:shadow-lg
+                  hover:shadow-[#74512D]/40
+                  active:scale-95
+                "
+              >
+                Login
+              </button>
+            </Link>
+          </motion.div>
+
+          {/* Register */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
+            <Link href="/register">
+              <button
+                className="
+                  cursor-pointer
+                  w-40 px-8 py-3 rounded-xl
+                  text-[#74512D]
+                  bg-white/70
+                  shadow-sm
+                  transition-all duration-300 ease-out
+                  hover:-translate-y-1
+                  hover:bg-[#74512D]
+                  hover:text-white
+                  hover:shadow-lg
+                  hover:shadow-[#74512D]/40
+                  active:scale-95
+                "
+              >
+                Register
+              </button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Footer */}
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        className="absolute bottom-6 w-full z-30 text-center"
+      >
+        <p className="text-xs text-black/40 transition-colors duration-300 hover:text-black/70">
+          © 2026 WHISP • All rights reserved.
+        </p>
+      </motion.footer>
+
+    </main>
+  );
 }
-
-export default page;
