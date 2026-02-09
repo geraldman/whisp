@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUserKeys } from "@/app/actions/auth";
 import { routes } from "@/app/routes";
 import { useAuth } from "@/lib/context/AuthContext";
-import { getDB } from "@/lib/db/indexeddb";
+import { getDB, getCachedUserData, cacheUserData } from "@/lib/db/indexeddb";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
 import { deriveKeyFromPassword } from "@/lib/crypto/keyStore";
@@ -36,9 +36,38 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
       
-      // Step 2: Fetch encrypted keys from server
+      // Step 2: Fetch encrypted keys - check cache first
       console.log("Fetching encrypted keys...");
-      const keysResult = await getUserKeys(uid);
+      const cachedData = await getCachedUserData(uid);
+      let keysResult: any;
+      
+      if (cachedData && cachedData.salt) {
+        // Use cached keys
+        console.log("Using cached encryption keys from IndexedDB");
+        keysResult = {
+          success: true,
+          publicKey: cachedData.publicKey,
+          encryptedPrivateKey: (cachedData as any).encryptedPrivateKey,
+          iv: (cachedData as any).iv,
+          salt: cachedData.salt
+        };
+      } else {
+        // Fetch from Firebase
+        keysResult = await getUserKeys(uid);
+        
+        if (keysResult.success) {
+          // Cache for next time (store all encryption-related data)
+          const db = await getDB();
+          await db.put("userCache", {
+            publicKey: keysResult.publicKey,
+            salt: keysResult.salt,
+            encryptedPrivateKey: keysResult.encryptedPrivateKey,
+            iv: keysResult.iv,
+            cachedAt: Date.now()
+          }, uid);
+          console.log("Cached encryption keys in IndexedDB");
+        }
+      }
       
       if (!keysResult.success) {
         setError(keysResult.error || "Failed to fetch keys");

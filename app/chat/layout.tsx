@@ -4,16 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { routes } from "@/app/routes";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import ChatSidebar from ".@/app/components/ChatSidebar";
+import ChatSidebar from "@/app/components/ChatSidebar";
 import { addFriendAndCreateChat } from "@/app/actions/friend/addFriendAndCreateChat";
 import { useRouter } from "next/navigation";
 import LoadingScreen from "@/app/components/LoadingScreen";
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useRequireAuth();
-
-  // 🔴 STATE GLOBAL SEARCH RESULT
-  const [searchResult, setSearchResult] = useState<any>(null);
 
   // 🔴 STATE GLOBAL SEARCH RESULT
   const [searchResult, setSearchResult] = useState<any>(null);
