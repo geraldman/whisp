@@ -8,14 +8,20 @@ export default function MessageComponent({
   from,
 }: MessageProps) {
   return (
-    <div className={`flex ${from === "send" ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex ${
+        from === "send" ? "justify-end" : "justify-start"
+      }`}
+    >
       <div
         className={`
-          px-4 py-2 rounded-2xl max-w-xs text-sm shadow-sm
+          px-4 py-2.5 rounded-2xl max-w-[70%]
+          text-sm leading-relaxed
+          shadow-sm
           ${
             from === "send"
-              ? "bg-[#7A573A] text-white"
-              : "bg-[#FFFCF6] text-[#2B1B12] border border-black/5"
+              ? "bg-[#7A573A] text-white rounded-br-md"
+              : "bg-[#FFFCF6] text-[#2B1B12] border border-black/5 rounded-bl-md"
           }
         `}
       >

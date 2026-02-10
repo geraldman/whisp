@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 import { CHAT_MOCKS, type ChatMock } from '@/lib/mocks/chat';
 import SettingsMenu from '@/app/components/SettingsMenu';
-import type {
-  SidebarMode,
-  SettingsView,
-} from '@/app/chat/layout';
+import LogoutModal from '@/app/components/modals/LogoutModal';
+
+import type { SidebarMode, SettingsView } from '@/app/chat/layout';
 
 export default function ChatSidebar({
   mode,
@@ -21,11 +22,14 @@ export default function ChatSidebar({
   onBackToChat: () => void;
   onChangeSettingsView: (v: SettingsView) => void;
 }) {
+  const router = useRouter();
+
   const MIN_WIDTH = 280;
   const MAX_WIDTH = 360;
 
   const [width, setWidth] = useState(280);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [showLogout, setShowLogout] = useState(false);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -38,12 +42,7 @@ export default function ChatSidebar({
       const rect = sidebarRef.current.getBoundingClientRect();
       const newWidth = e.clientX - rect.left;
 
-      setWidth(
-        Math.min(
-          Math.max(newWidth, MIN_WIDTH),
-          MAX_WIDTH
-        )
-      );
+      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
     }
 
     function onMouseUp() {
@@ -67,102 +66,126 @@ export default function ChatSidebar({
     document.body.style.userSelect = 'none';
   }
 
+  /* ================= LOGOUT ================= */
+  async function handleLogout() {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } finally {
+      router.replace('/');
+    }
+  }
+
   return (
-    <aside
-      ref={sidebarRef}
-      style={{ width }}
-      className="relative flex flex-col h-full bg-[#F8F4E1] border-r border-[#74512D]/20"
-    >
-      {/* ================= HEADER ================= */}
-      <div className="h-14 px-4 flex items-center gap-4 border-b border-[#74512D]/15">
-        <img
-          src="/logo.png"
-          alt="WHISP"
-          className="h-6 object-contain shrink-0"
-        />
+    <>
+      <aside
+        ref={sidebarRef}
+        style={{ width }}
+        className="relative flex flex-col h-full bg-[#F8F4E1] border-r border-[#74512D]/20"
+      >
+        {/* ================= HEADER ================= */}
+        <div className="h-14 px-4 flex items-center gap-4 border-b border-[#74512D]/15">
+          <img
+            src="/logo.png"
+            alt="WHISP"
+            className="h-6 object-contain shrink-0"
+          />
 
-        <div className="ml-auto flex items-center gap-1 pr-2 shrink-0">
-          <IconButton label="Messages" onClick={onBackToChat}>
-            <MessageIcon />
-          </IconButton>
+          <div className="ml-auto flex items-center gap-1 pr-2 shrink-0">
+            {/* BACK TO MESSAGES */}
+            <IconButton label="Messages" onClick={onBackToChat}>
+              <MessageIcon />
+            </IconButton>
 
-          <IconButton label="Settings" onClick={onOpenSettings}>
-            <SettingsIcon />
-          </IconButton>
+            {/* SETTINGS */}
+            <IconButton label="Settings" onClick={onOpenSettings}>
+              <SettingsIcon />
+            </IconButton>
 
-          <IconButton label="Logout">
-            <LogoutIcon />
-          </IconButton>
+            {/* LOGOUT */}
+            <IconButton label="Logout" onClick={() => setShowLogout(true)}>
+              <LogoutIcon />
+            </IconButton>
+          </div>
         </div>
-      </div>
 
-      {/* ================= BODY ================= */}
-      {mode === 'chat' ? (
-        <>
-          {/* PROFILE */}
-          <div className="mx-3 mt-4 mb-5 rounded-xl bg-[#EFE6D8] px-4 py-4 border border-[#74512D]/15 shadow-sm">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-14 h-14 rounded-full bg-white border border-[#74512D]/25 flex items-center justify-center">
-                <span className="text-lg font-semibold text-[#543310]">G</span>
-              </div>
+        {/* ================= BODY ================= */}
+        {mode === 'chat' ? (
+          <>
+            {/* PROFILE */}
+            <div className="mx-3 mt-4 mb-5 rounded-xl bg-[#EFE6D8] px-4 py-4 border border-[#74512D]/15 shadow-sm">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-14 h-14 rounded-full bg-white border border-[#74512D]/25 flex items-center justify-center">
+                  <span className="text-lg font-semibold text-[#543310]">G</span>
+                </div>
 
-              <p className="text-sm font-semibold text-[#543310]">
-                Gerald Manurung
-              </p>
+                <p className="text-sm font-semibold text-[#543310]">
+                  Gerald Manurung
+                </p>
 
-              <div className="flex items-center gap-1">
-                <span className="px-3 py-1 rounded-full text-[11px] bg-white border border-[#74512D]/20 text-[#74512D]">
-                  ID · 567890
-                </span>
-                <CopyButton content="567890" />
+                <div className="flex items-center gap-1">
+                  <span className="px-3 py-1 rounded-full text-[11px] bg-white border border-[#74512D]/20 text-[#74512D]">
+                    ID · 567890
+                  </span>
+                  <CopyButton content="567890" />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* TITLE */}
-          <div className="px-4 mb-3">
-            <h2 className="text-lg font-semibold text-[#543310]">
-              Messages
-            </h2>
-          </div>
-
-          {/* SEARCH */}
-          <div className="px-3 mb-4">
-            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#74512D]/15 shadow-sm">
-              <input
-                placeholder="Search user by ID"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#8A7F73] text-[#543310]"
-              />
-              <SearchIcon />
+            {/* TITLE */}
+            <div className="px-4 mb-3">
+              <h2 className="text-lg font-semibold text-[#543310]">
+                Messages
+              </h2>
             </div>
-          </div>
 
-          {/* CHAT LIST */}
-          <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4">
-            {CHAT_MOCKS.map((chat) => (
-              <ChatItem
-                key={chat.id}
-                chat={chat}
-                active={chat.id === activeChatId}
-                onClick={() => setActiveChatId(chat.id)}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <SettingsMenu
-          active={settingsView}
-          onChange={onChangeSettingsView}
+            {/* SEARCH */}
+            <div className="px-3 mb-4">
+              <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#74512D]/15 shadow-sm">
+                <input
+                  placeholder="Search user by ID"
+                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#8A7F73] text-[#543310]"
+                />
+                <SearchIcon />
+              </div>
+            </div>
+
+            {/* CHAT LIST */}
+            <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4">
+              {CHAT_MOCKS.map((chat) => (
+                <ChatItem
+                  key={chat.id}
+                  chat={chat}
+                  active={chat.id === activeChatId}
+                  onClick={() => {
+                    setActiveChatId(chat.id);
+                    router.push(`/chat/${chat.id}`);
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        ) : (
+          <SettingsMenu
+            active={settingsView}
+            onChange={onChangeSettingsView}
+          />
+        )}
+
+        {/* ================= RESIZE HANDLE ================= */}
+        <div
+          onMouseDown={startResize}
+          className="absolute top-0 right-0 h-full w-2 cursor-ew-resize
+                     bg-transparent hover:bg-black/10"
         />
-      )}
+      </aside>
 
-      {/* ================= RESIZE HANDLE ================= */}
-      <div
-        onMouseDown={startResize}
-        className="absolute top-0 right-0 h-full w-2 cursor-ew-resize
-                   bg-transparent hover:bg-black/10"
+      {/* ================= LOGOUT MODAL ================= */}
+      <LogoutModal
+        open={showLogout}
+        onCancel={() => setShowLogout(false)}
+        onConfirm={handleLogout}
       />
-    </aside>
+    </>
   );
 }
 
@@ -263,23 +286,28 @@ function IconButton({
 /* ================= ICONS ================= */
 function SearchIcon() {
   return (
-    <svg className="w-5 h-5 text-[#8A7F73]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <svg className="w-5 h-5 text-[#8A7F73]" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+            d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   );
 }
 
 function MessageIcon() {
   return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h7M5 21l2-2h11a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12z" />
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+            d="M7 8h10M7 12h7M5 21l2-2h11a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12z" />
     </svg>
   );
 }
 
 function SettingsIcon() {
   return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>
@@ -288,9 +316,12 @@ function SettingsIcon() {
 
 function LogoutIcon() {
   return (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 17l5-5-5-5" />
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+            d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+      <path strokeLinecap="round" strokeLinejoin="round"
+            d="M10 17l5-5-5-5" />
     </svg>
   );
 }

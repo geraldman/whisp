@@ -138,7 +138,7 @@ export default function ProfileContent() {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="px-6 py-2.5 rounded-full
+              className="cursor-pointer px-6 py-2.5 rounded-full
                          bg-[#74512D] text-white
                          text-sm font-medium
                          hover:bg-[#5f3f22]
