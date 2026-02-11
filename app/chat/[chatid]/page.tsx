@@ -3,7 +3,7 @@
 import { useParams, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import MessageComponent from "@/app/components/messageComponent";
-import MessageInput from "@/app/components/messageInput";
+import MessageInput from "@/app/components/messageinput";
 
 export default function ChatDetailPage() {
   const { chatid } = useParams<{ chatid: string }>();
