@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CHAT_MOCKS, type ChatMock } from '@/lib/mocks/chat';
 import SettingsMenu from '@/app/components/SettingsMenu';
 import LogoutModal from '@/app/components/modals/LogoutModal';
+import SearchUser from '@/app/components/SearchUser';
 
 import type { SidebarMode, SettingsView } from '@/app/chat/layout';
 
@@ -15,12 +16,14 @@ export default function ChatSidebar({
   onOpenSettings,
   onBackToChat,
   onChangeSettingsView,
+  onSearchUser, 
 }: {
   mode: SidebarMode;
   settingsView: SettingsView;
   onOpenSettings: () => void;
   onBackToChat: () => void;
   onChangeSettingsView: (v: SettingsView) => void;
+  onSearchUser?: (user: any | null) => void; 
 }) {
   const router = useRouter();
 
@@ -91,17 +94,14 @@ export default function ChatSidebar({
           />
 
           <div className="ml-auto flex items-center gap-1 pr-2 shrink-0">
-            {/* BACK TO MESSAGES */}
             <IconButton label="Messages" onClick={onBackToChat}>
               <MessageIcon />
             </IconButton>
 
-            {/* SETTINGS */}
             <IconButton label="Settings" onClick={onOpenSettings}>
               <SettingsIcon />
             </IconButton>
 
-            {/* LOGOUT */}
             <IconButton label="Logout" onClick={() => setShowLogout(true)}>
               <LogoutIcon />
             </IconButton>
@@ -138,16 +138,10 @@ export default function ChatSidebar({
               </h2>
             </div>
 
-            {/* SEARCH */}
-            <div className="px-3 mb-4">
-              <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#74512D]/15 shadow-sm">
-                <input
-                  placeholder="Search user by ID"
-                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#8A7F73] text-[#543310]"
-                />
-                <SearchIcon />
-              </div>
-            </div>
+            {/* SEARCH (DIGANTI – FINAL) */}
+            <SearchUser
+              onSearchResult={(user) => {onSearchUser?.(user)}} // 👈 WIRING SEARCH
+            />
 
             {/* CHAT LIST */}
             <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4">
@@ -284,16 +278,6 @@ function IconButton({
 }
 
 /* ================= ICONS ================= */
-function SearchIcon() {
-  return (
-    <svg className="w-5 h-5 text-[#8A7F73]" fill="none" viewBox="0 0 24 24"
-         stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round"
-            d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-}
-
 function MessageIcon() {
   return (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
