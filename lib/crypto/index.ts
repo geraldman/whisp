@@ -1,3 +1,14 @@
+"use client";
+
+function ensureCryptoAvailable() {
+  if (typeof window === 'undefined') {
+    throw new Error('Crypto operations must run in browser environment');
+  }
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('Web Crypto API is not available. Ensure you are using HTTPS or localhost.');
+  }
+}
+
 import { aesDecrypt, aesEncrypt } from "./aes";
 import { deriveKeyFromPassword } from "./keyStore";
 import { exportPublicKey, exportPrivateKey, generateRSAKeyPair } from "./rsa";
@@ -9,6 +20,7 @@ export * from "./groupKey";
 export * from "./keyStore";
 
 export async function createAccountProcedureSimplified(password: string){
+    ensureCryptoAvailable();
     const RSAKeyPair = await generateRSAKeyPair();
 
     const salt = new Uint8Array(12);

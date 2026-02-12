@@ -1,3 +1,14 @@
+"use client";
+
+function ensureCryptoAvailable() {
+  if (typeof window === 'undefined') {
+    throw new Error('Crypto operations must run in browser environment');
+  }
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('Web Crypto API is not available. Ensure you are using HTTPS or localhost.');
+  }
+}
+
 // crypto/hybrid.ts
 import { aesEncrypt, aesDecrypt } from "./aes";
 import { rsaDecrypt } from "./rsa";
@@ -7,6 +18,7 @@ export async function decryptGroupKey(
   chatId: string,
   encryptedKey: number[]
 ) {
+  ensureCryptoAvailable();
   const { privateKey } = getRSAKeyPair();
   const raw = await rsaDecrypt(privateKey, new Uint8Array(encryptedKey));
   const aesKey = await crypto.subtle.importKey(

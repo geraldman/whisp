@@ -1,4 +1,15 @@
+"use client";
+
 // crypto/keyStore.ts
+function ensureCryptoAvailable() {
+  if (typeof window === 'undefined') {
+    throw new Error('Crypto operations must run in browser environment');
+  }
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('Web Crypto API is not available. Ensure you are using HTTPS or localhost.');
+  }
+}
+
 let rsaKeyPair: CryptoKeyPair | null = null;
 const groupKeys = new Map<string, CryptoKey>();
 
@@ -20,6 +31,7 @@ export function getGroupKey(chatId: string) {
 }
 
 export async function deriveKeyFromPassword(password: string, salt: string) {
+  ensureCryptoAvailable();
   const enc = new TextEncoder();
 
   const baseKey = await crypto.subtle.importKey(

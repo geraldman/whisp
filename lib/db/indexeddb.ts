@@ -1,13 +1,15 @@
 "use client";
 
-import { openDB, IDBPDatabase } from "idb";
+import { openDB, IDBPDatabase, deleteDB as idbDeleteDB } from "idb";
 
 let dbInstance: IDBPDatabase | null = null;
+const DB_NAME = "e2ee-chat-db";
+const DB_VERSION = 2;
 
 export async function getDB() {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB("e2ee-chat-db", 1, {
+  dbInstance = await openDB(DB_NAME, DB_VERSION, {
     upgrade(db, oldVersion, newVersion, transaction) {
       // Store encrypted private keys
       if (!db.objectStoreNames.contains("keys")) {
@@ -39,4 +41,26 @@ export async function getDB() {
   });
   
   return dbInstance;
+}
+
+/**
+ * Completely deletes the IndexedDB database and resets the instance.
+ * This should be called when the user logs out or is not authenticated.
+ */
+
+export async function deleteDB() {
+  try {
+    // Close the current connection if it exists
+    if (dbInstance) {
+      dbInstance.close();
+      dbInstance = null;
+    }
+    
+    // Delete the entire database
+    await idbDeleteDB(DB_NAME);
+    console.log("IndexedDB: Database deleted successfully");
+  } catch (error) {
+    console.error("IndexedDB: Failed to delete database", error);
+    throw error;
+  }
 }

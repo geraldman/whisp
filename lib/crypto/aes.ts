@@ -1,5 +1,17 @@
+"use client";
+
 // crypto/aes.ts
+function ensureCryptoAvailable() {
+  if (typeof window === 'undefined') {
+    throw new Error('Crypto operations must run in browser environment');
+  }
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error('Web Crypto API is not available. Ensure you are using HTTPS or localhost.');
+  }
+}
+
 export async function generateAESKey() {
+  ensureCryptoAvailable();
   return crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
     true,
@@ -18,6 +30,7 @@ export async function generateAESKey() {
 */
 
 export async function aesEncrypt(key: CryptoKey, plaintext: string) {
+  ensureCryptoAvailable();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(plaintext);
 
@@ -38,6 +51,7 @@ export async function aesDecrypt(
   iv: number[],
   data: number[]
 ) {
+  ensureCryptoAvailable();
   const decrypted = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: new Uint8Array(iv) },
     key,

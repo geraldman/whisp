@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
-import { getDB } from "@/lib/db/indexeddb";
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Step 1: Check IndexedDB first for faster initial auth state
     async function checkIndexedDB() {
       try {
+        const { getDB } = await import("@/lib/db/indexeddb");
         const db = await getDB();
         const hasKeys = await db.get("keys", "userPrivateKey");
         
@@ -53,14 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(firebaseUser);
         setLoading(false);
       } else {
-        // User is NOT logged in via Firebase - clear IndexedDB
-        console.log("AuthContext: No Firebase user, clearing IndexedDB");
+        // User is NOT logged in via Firebase - completely delete IndexedDB
+        console.log("AuthContext: No Firebase user, deleting IndexedDB");
         try {
-          const db = await getDB();
-          await db.delete("keys", "userPrivateKey");
-          await db.delete("keys", "userPublicKey");
+          const { deleteDB } = await import("@/lib/db/indexeddb");
+          await deleteDB();
         } catch (error) {
-          console.error("AuthContext: Failed to clear IndexedDB:", error);
+          console.error("AuthContext: Failed to delete IndexedDB:", error);
         }
         setUser(null);
         setLoading(false);

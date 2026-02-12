@@ -19,6 +19,7 @@ export async function storeUserKeys(
   salt: string
 ) {
   try {
+
     const batch = writeBatch(db);
     const numericId = await generateUniqueNumericId();
 

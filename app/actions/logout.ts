@@ -2,16 +2,20 @@
 
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
-import { getDB } from "@/lib/db/indexeddb";
+import { deleteDB } from "@/lib/db/indexeddb";
 
 export async function logout() {
-  // 1. Firebase sign out
-  await signOut(auth);
-
-  // 2. Clear IndexedDB crypto material
-  const db = await getDB();
-  await db.delete("keys", "userPrivateKey");
-
-  // (opsional tapi disarankan)
-  await db.clear("keys");
+  try {
+    // 1. Completely delete IndexedDB (all crypto material and cached data)
+    await deleteDB();
+    
+    // 2. Firebase sign out
+    await signOut(auth);
+    
+    console.log("Logout: Successfully logged out and cleared all local data");
+  } catch (error) {
+    console.error("Logout: Error during logout", error);
+    // Still attempt Firebase sign out even if IndexedDB deletion fails
+    await signOut(auth);
+  }
 }
