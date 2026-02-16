@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
+import { useUserPresence } from "@/lib/hooks/useUserPresence";
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +20,9 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Track user presence (online/offline)
+  useUserPresence(user?.uid || null);
 
   useEffect(() => {
     let isMounted = true;
@@ -52,6 +56,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // User is logged in via Firebase
         setUser(firebaseUser);
         setLoading(false);
+
+        // Clean up inactive chats on login
+        try {
+          const { cleanupInactiveChats } = await import("@/app/actions/cleanupInactiveChats");
+          const result = await cleanupInactiveChats(firebaseUser.uid);
+          if (result.deletedCount && result.deletedCount > 0) {
+            console.log(`AuthContext: Cleaned up ${result.deletedCount} inactive chat(s)`);
+          }
+        } catch (error) {
+          console.error("AuthContext: Failed to cleanup inactive chats:", error);
+        }
       } else {
         // User is NOT logged in via Firebase - completely delete IndexedDB
         console.log("AuthContext: No Firebase user, deleting IndexedDB");

@@ -1,14 +1,14 @@
 "use client";
 
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/firebase";
+import { auth, db } from "@/lib/firebase/firebase";
 import { useEffect, useState } from "react";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import { getIncomingFriendRequests } from "@/app/actions/friend/getIncomingFriendRequests";
 import { acceptFriendRequest } from "@/app/actions/friend/acceptFriendRequest";
+import { logout } from "@/app/actions/logout";
 import { useRouter } from "next/navigation";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
-export default function SettingsMenu() {
+export default function SettingsMenu({ onRequestHandled }: { onRequestHandled?: () => void }) {
   const { user } = useRequireAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const router = useRouter();
@@ -16,24 +16,59 @@ export default function SettingsMenu() {
 useEffect(() => {
   if (!user?.uid) return;
 
-  async function load() {
-    const data = await getIncomingFriendRequests(user.uid);
+  // Real-time listener for friend requests
+  const requestsQuery = query(
+    collection(db, "friend_requests"),
+    where("to", "==", user.uid),
+    where("status", "==", "pending")
+  );
 
-    // 🔒 HANYA REQUEST YANG PUNYA USERNAME
-    const validRequests = data.filter(
-      (r: any) => typeof r.fromUsername === "string" && r.fromUsername.trim() !== ""
-    );
+  const unsubscribe = onSnapshot(
+    requestsQuery,
+    (snapshot) => {
+      const data = snapshot.docs.map((doc) => {
+        const reqData = doc.data();
+        return {
+          id: doc.id,
+          from: reqData.from,
+          fromUsername: reqData.fromUsername ?? null,
+          to: reqData.to,
+          status: reqData.status,
+          chatId: reqData.chatId,
+          createdAt: reqData.createdAt ? reqData.createdAt.toMillis() : null,
+        };
+      });
 
-    setRequests(validRequests);
-  }
+      // 🔒 HANYA REQUEST YANG PUNYA USERNAME
+      const validRequests = data.filter(
+        (r: any) => typeof r.fromUsername === "string" && r.fromUsername.trim() !== ""
+      );
 
-  load();
+      setRequests(validRequests);
+    },
+    (error) => {
+      console.error("Failed to listen to friend requests:", error);
+    }
+  );
+
+  return () => unsubscribe();
 }, [user?.uid]);
 
 
-  async function handleAccept(reqId: string, chatId: string) {
-    await acceptFriendRequest(reqId);
-    router.push(`/chat/${chatId}`);
+  async function handleAccept(reqId: string) {
+    const result = await acceptFriendRequest(reqId);
+    
+    // No need to manually refresh - real-time listener will update automatically
+    
+    // Notify parent (though not strictly needed with real-time listeners)
+    if (onRequestHandled) {
+      onRequestHandled();
+    }
+    
+    // Navigate to the newly created chat
+    if (result.chatId) {
+      router.push(`/chat/${result.chatId}`);
+    }
   }
 
   return (
@@ -61,7 +96,7 @@ useEffect(() => {
           </div>
           <button
             style={{ marginTop: 4 }}
-            onClick={() => handleAccept(r.id, r.chatId)}
+            onClick={() => handleAccept(r.id)}
           >
             Accept
           </button>
@@ -72,7 +107,7 @@ useEffect(() => {
 
       <p
         style={{ cursor: "pointer", color: "red" }}
-        onClick={() => signOut(auth)}
+        onClick={() => logout()}
       >
         Logout
       </p>

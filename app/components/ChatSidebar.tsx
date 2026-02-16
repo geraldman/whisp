@@ -2,14 +2,25 @@
 
 import ProfileSection from "./ProfileSection";
 import SearchUser from "./SearchUser";
+import ChatList from "./ChatList";
 import Link from "next/link";
 
 export default function ChatSidebar({ user, onSearchResult }: any) {
   return (
-    <div className="w-80 border-r border-gray-300 flex flex-col p-5 gap-5">
-      <ProfileSection user={user} />
+    <div style={{ 
+      width: 320, 
+      borderRight: "1px solid #ddd", 
+      display: "flex", 
+      flexDirection: "column",
+      height: "100vh",
+      overflow: "hidden"
+    }}>
+      <div style={{ flexShrink: 0 }}>
+        <ProfileSection user={user} />
+        <SearchUser onSearchResult={onSearchResult} />
+      </div>
 
-      <SearchUser onSearchResult={onSearchResult} />
+      <ChatList uid={user.uid} />
     </div>
   );
 }

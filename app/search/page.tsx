@@ -6,7 +6,7 @@ import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import LoadingScreen from "@/app/components/LoadingScreen"
 
 export default function SearchUserPage() {
-  const { user, loadAuth } = useRequireAuth();
+  const { user, loading: authLoading } = useRequireAuth();
   
   // All hooks MUST be called before any conditional returns
   const [numericId, setNumericId] = useState("");
@@ -19,7 +19,7 @@ export default function SearchUserPage() {
   }>(null);
 
   // Now we can do conditional returns
-  if (loadAuth || !user) {
+  if (authLoading || !user) {
     return <LoadingScreen />;
   }
 

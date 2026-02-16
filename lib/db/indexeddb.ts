@@ -29,10 +29,20 @@ export async function getDB() {
       }
     },
     blocked() {
-      console.warn("IndexedDB blocked - close other tabs");
+      console.warn("IndexedDB blocked - another tab is preventing database upgrade. Please close other tabs or refresh this page.");
+      // This tab is trying to upgrade but another tab has the old version open
+      // User should close other tabs with this app open
     },
     blocking() {
-      console.warn("IndexedDB blocking - database upgrade needed");
+      console.warn("IndexedDB blocking - closing connection to allow upgrade in another tab");
+      // This tab is blocking another tab from upgrading
+      // Close the connection to let the upgrade proceed
+      if (dbInstance) {
+        dbInstance.close();
+        dbInstance = null;
+      }
+      // The app will naturally reconnect when it needs the database again
+      // No automatic reload to prevent reload loops
     },
     terminated() {
       console.error("IndexedDB terminated unexpectedly");

@@ -2,7 +2,7 @@
 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, writeBatch, getDoc } from "firebase/firestore";
-import { auth, db, getUserEncryptionKeys, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
+import { auth, db, getUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified, generateRSAKeyPair, loginAccountProcedureSimplified } from "@/lib/crypto";
 import { generateUniqueNumericId } from "@/lib/generateUserId";
@@ -81,7 +81,7 @@ export async function loginUserSimplified(
     // Fetch encryption keys from Firestore
     const keys = await getUserEncryptionKeysSimplified(uid);
 
-    const login = loginAccountProcedureSimplified(
+    const login = await loginAccountProcedureSimplified(
       password, 
       keys.encryptedPrivateKey, 
       keys.iv,
@@ -90,7 +90,7 @@ export async function loginUserSimplified(
 
     /* LocalStorage or IndexedDB to keep all data */
     const db = await getDB();
-    await db.put("keys", login.privateKey, "userPrivateKey");
+    await db.put("keys", login.privateKeyPKCS8, "userPrivateKey");
     
     return { 
       success: true, 

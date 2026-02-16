@@ -38,14 +38,60 @@ export async function exportPrivateKey(key: CryptoKey) {
 
 export async function importPublicKey(base64: string) {
   ensureCryptoAvailable();
-  const buf = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-  return crypto.subtle.importKey(
-    "spki",
-    buf,
-    { name: "RSA-OAEP", hash: "SHA-256" },
-    true,
-    ["encrypt"]
-  );
+  
+  if (!base64 || typeof base64 !== 'string') {
+    throw new Error('Invalid public key: Key is missing or not a string');
+  }
+
+  // Validate base64 format
+  const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+  if (!base64Pattern.test(base64)) {
+    console.error('Invalid base64 characters detected in public key');
+    throw new Error('Public key is corrupted or invalid');
+  }
+
+  try {
+    const buf = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    return crypto.subtle.importKey(
+      "spki",
+      buf,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      true,
+      ["encrypt"]
+    );
+  } catch (error) {
+    console.error('Failed to decode or import public key:', error);
+    throw new Error('Public key is corrupted or invalid');
+  }
+}
+
+export async function importPrivateKey(base64: string) {
+  ensureCryptoAvailable();
+  
+  if (!base64 || typeof base64 !== 'string') {
+    throw new Error('Invalid private key: Key is missing or not a string');
+  }
+
+  // Validate base64 format - should only contain valid base64 characters
+  const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+  if (!base64Pattern.test(base64)) {
+    console.error('Invalid base64 characters detected in private key');
+    throw new Error('Private key is corrupted. Please log out and log back in to regenerate your encryption keys.');
+  }
+
+  try {
+    const buf = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    return crypto.subtle.importKey(
+      "pkcs8",
+      buf,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      true,
+      ["decrypt"]
+    );
+  } catch (error) {
+    console.error('Failed to decode or import private key:', error);
+    throw new Error('Private key is corrupted. Please log out and log back in to regenerate your encryption keys.');
+  }
 }
 
 export async function rsaEncrypt(publicKey: CryptoKey, data: ArrayBuffer) {

@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import SettingsMenu from "./SettingsMenu";
+import NotificationBadge from "./NotificationBadge";
 
 export default function ProfileSection({ user }: any) {
   const [profile, setProfile] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -20,6 +22,39 @@ export default function ProfileSection({ user }: any) {
     }
 
     fetchProfile();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setRequestCount(0);
+      return;
+    }
+
+    let mounted = true;
+
+    // Real-time listener for friend requests
+    const requestsQuery = query(
+      collection(db, "friend_requests"),
+      where("to", "==", user.uid),
+      where("status", "==", "pending")
+    );
+
+    const unsubscribe = onSnapshot(
+      requestsQuery,
+      (snapshot) => {
+        if (!mounted) return;
+        setRequestCount(snapshot.docs.length);
+      },
+      (error) => {
+        if (!mounted) return;
+        console.error("Failed to listen to friend requests:", error);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, [user?.uid]);
 
   return (
@@ -38,12 +73,17 @@ export default function ProfileSection({ user }: any) {
         }}
       >
         <strong>{user?.email}</strong>
-        <span
-          style={{ cursor: "pointer" }}
+        <div
+          style={{
+            position: "relative",
+            cursor: "pointer",
+            display: "inline-block",
+          }}
           onClick={() => setOpenSettings((v) => !v)}
         >
-          ⚙️
-        </span>
+          <span>⚙️</span>
+          <NotificationBadge count={requestCount} />
+        </div>
       </div>
 
       {/* USER INFO */}
@@ -53,7 +93,13 @@ export default function ProfileSection({ user }: any) {
       </div>
 
       {/* SETTINGS MENU */}
-      {openSettings && <SettingsMenu />}
+      {openSettings && (
+        <SettingsMenu
+          onRequestHandled={() => {
+            // Real-time listener handles updates automatically
+          }}
+        />
+      )}
     </div>
   );
 }

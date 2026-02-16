@@ -1,6 +1,7 @@
 "use server";
 
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { randomUUID } from "crypto";
 
 export async function acceptFriendRequest(requestId: string) {
   if (!requestId) {
@@ -16,26 +17,36 @@ export async function acceptFriendRequest(requestId: string) {
 
   const data = requestSnap.data();
 
+  if (!data) {
+    throw new Error("Friend request data is missing");
+  }
+
   if (data.status !== "pending") {
     throw new Error("Request already handled");
   }
 
-  const { chatId, from, to } = data;
+  const { from, to } = data;
 
-  // 1️⃣ Update friend request
+  // 1️⃣ CREATE CHAT NOW (when accepting)
+  const chatId = randomUUID();
+
+  await adminDb.collection("chats").doc(chatId).set({
+    participants: [from, to],
+    isFriendChat: true, // Already unlocked since it's accepted
+    maxMessages: null, // Unlimited messages
+    createdAt: new Date(),
+    lastActivity: new Date(), // Track last activity for cleanup
+    saved: false, // Chat can be cleaned up - friend relationship persists in friend_requests
+  });
+
+  // 2️⃣ Update friend request with chatId
   await requestRef.update({
     status: "accepted",
+    chatId,
     acceptedAt: new Date(),
   });
 
-  // 2️⃣ Unlock chat
-  await adminDb.collection("chats").doc(chatId).update({
-    isFriendChat: true,
-    maxMessages: null,
-    unlockedAt: new Date(),
-  });
-
-  // 3️⃣ Tambahkan SYSTEM MESSAGE ke history chat
+  // 3️⃣ Add SYSTEM MESSAGE to chat history
   await adminDb
     .collection("chats")
     .doc(chatId)
@@ -48,10 +59,10 @@ export async function acceptFriendRequest(requestId: string) {
       createdAt: new Date(),
     });
 
-  // 4️⃣ Return data untuk client animation
+  // 4️⃣ Return data for client
   return {
     success: true,
     chatId,
-    connectedUserId: from, // user yang request
+    connectedUserId: from, // user who sent the request
   };
 }
