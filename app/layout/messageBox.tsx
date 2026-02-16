@@ -6,18 +6,14 @@ import { collection, query, orderBy, onSnapshot, doc, getDoc } from "firebase/fi
 import { db } from "@/lib/firebase/firebase";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getDB } from "@/lib/db/indexeddb";
-import { getOrCreateSessionKey, storeSessionKey } from "@/app/actions/getOrCreateSessionKey";
+import { storeSessionKey } from "@/app/actions/getOrCreateSessionKey";
 import { getUserPublicKeys } from "@/app/actions/getUserPublicKey";
-import { ensureChatExists } from "@/app/actions/ensureChatExists";
+import { initializeChatSession } from "@/app/actions/initializeChatSession";
 import { ensureChatFromFriendRequest } from "@/app/actions/ensureChatFromFriendRequest";
 import { unlinkChatFromFriendRequest } from "@/app/actions/unlinkChatFromFriendRequest";
 import { deleteChatDocument } from "@/app/actions/deleteChatDocument";
 import { CHAT_INACTIVITY_TIMEOUT } from "@/lib/config/chatConfig";
-import { 
-  importPrivateKey, 
-  exportPublicKey,
-  importPublicKey 
-} from "@/lib/crypto/rsa";
+import { importPrivateKey } from "@/lib/crypto/rsa";
 import { 
   generateSessionAESKey, 
   exportSessionKey, 
@@ -95,105 +91,62 @@ function MessageBox() {
     }
   }, [chatId, uid, chatExpired, router]);
 
-  // Check if chat has expired before attempting to access it
+  // Consolidated: Initialize chat session (checks expiry + gets session key in single optimized call)
   useEffect(() => {
     if (!chatId || !uid || chatId.startsWith("friend_")) return;
 
-    let mounted = true;
-
-    async function checkChatExpiry() {
-      try {
-        const chatDocRef = doc(db, "chats", chatId);
-        const chatSnapshot = await getDoc(chatDocRef);
-
-        if (!mounted) return;
-
-        if (!chatSnapshot.exists()) {
-          // Chat doesn't exist - check if it's an expired friend chat
-          console.log("⚠️ Chat document doesn't exist");
-          setChatExpired(true);
-          setLoading(false);
-          return;
-        }
-
-        const chatData = chatSnapshot.data();
-        const lastActivity = chatData.lastActivity;
-
-        if (lastActivity) {
-          const lastActivityTime = lastActivity.toMillis();
-          const now = Date.now();
-          const timeSinceActivity = now - lastActivityTime;
-
-          if (timeSinceActivity > CHAT_INACTIVITY_TIMEOUT) {
-            console.log(`⏰ Chat expired: ${Math.floor(timeSinceActivity / 1000)}s since last activity`);
-            setChatExpired(true);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Chat is valid, continue with initialization
-        setChatExpired(false);
-      } catch (error) {
-        if (!mounted) return;
-        console.error("Failed to check chat expiry:", error);
-        // Allow initialization to continue and handle error there
-      }
-    }
-
-    checkChatExpiry();
-
-    return () => {
-      mounted = false;
-    };
-  }, [chatId, uid]);
-
-  // Initialize session key
-  useEffect(() => {
-    if (!chatId || !uid || chatExpired || chatId.startsWith("friend_")) return;
-
     let isMounted = true;
 
-    async function initSessionKey() {
+    async function initChatSession() {
       try {
         if (!uid) {
           throw new Error("User not authenticated");
         }
         
-        console.log("🔑 Initializing session key for chat:", chatId);
+        console.log("🚀 Initializing chat session (optimized single read):", chatId);
         
-        // First, ensure the chat exists (handles cleanup/recreation scenario)
-        const chatStatus = await ensureChatExists(chatId, uid);
+        // Single consolidated call that checks expiry and gets session data
+        const result = await initializeChatSession(chatId, uid);
         
-        if (!chatStatus.success) {
-          console.error("❌ Chat not found:", chatStatus.error);
-          // Redirect to chat list if chat doesn't exist and can't be recreated
+        if (!isMounted) return;
+
+        if (!result.success) {
+          console.error("❌ Chat initialization failed:", result.error);
           router.replace("/chat");
           return;
         }
-        
-        if (chatStatus.recreated) {
-          console.log("♻️ Chat was recreated with new ID:", chatStatus.chatId);
-          // Navigate to the new chatId
-          router.replace(`/chat/${chatStatus.chatId}`);
+
+        // Handle chat expiry
+        if (result.chatExpired) {
+          console.log("⏰ Chat has expired");
+          setChatExpired(true);
+          setLoading(false);
+          return;
+        }
+
+        // Handle chat recreation
+        if (result.recreated) {
+          console.log("♻️ Chat was recreated with new ID:", result.chatId);
+          router.replace(`/chat/${result.chatId}`);
           return; // Exit and let the new URL trigger re-initialization
         }
 
-        // Use the correct chatId (might be new if recreated)
-        const activeChatId = chatStatus.chatId;
-        
-        // Get or create session key from server
-        const sessionData = await getOrCreateSessionKey(activeChatId, uid);
+        // Use the active chatId (might be new if recreated)
+        const activeChatId = result.chatId;
+        const sessionData = result.sessionData!;
 
+        // Handle session key generation or decryption
         if (sessionData.isNew) {
+          // Type narrowing: when isNew is true, participants exists
+          const participants = 'participants' in sessionData ? sessionData.participants : [];
+          
           // Need to generate new session key
-          console.log("🆕 Generating new session key for participants:", sessionData.participants);
+          console.log("🆕 Generating new session key for participants:", participants);
           
           const newSessionKey = await generateSessionAESKey();
           const sessionKeyBase64 = await exportSessionKey(newSessionKey);
 
           // Get all participants' public keys
-          const participants = sessionData.participants || [];
           const encryptedKeys: Record<string, string> = {};
 
           // Get public keys for all participants
@@ -226,34 +179,36 @@ function MessageBox() {
 
           if (storeResult.alreadyExisted) {
             // Race condition: another user created the session first
-            // We need to use their session instead of our newly generated one
-            console.log("⚠️ Session already existed, fetching and decrypting the existing session");
+            // Re-initialize to get the existing session
+            console.log("⚠️ Session already existed, re-fetching chat session");
             
-            const existingSessionData = await getOrCreateSessionKey(activeChatId, uid);
+            const retryResult = await initializeChatSession(activeChatId, uid);
             
-            if (!existingSessionData.isNew) {
-              const indexedDB = await getDB();
-              const privateKeyPKCS8 = await indexedDB.get("keys", "userPrivateKey");
-              
-              if (!privateKeyPKCS8 || typeof privateKeyPKCS8 !== 'string') {
-                console.error("❌ Private key not found in IndexedDB. User needs to log in again.");
-                throw new Error("Private key not found. Please log in again to restore your encryption keys.");
-              }
+            if (!isMounted) return;
 
-              const privateKey = await importPrivateKey(privateKeyPKCS8);
-              const decryptedKeyBase64 = await decryptSessionKey(
-                existingSessionData.encryptedSessionKey,
-                privateKey
-              );
-              
-              const importedSessionKey = await importSessionKey(decryptedKeyBase64);
-              
-              if (isMounted) {
-                setSessionKey(importedSessionKey);
-                console.log("✅ Using existing session key from other user");
-              }
-            } else {
-              throw new Error("Race condition error: expected existing session but got isNew");
+            if (!retryResult.success || !retryResult.sessionData || retryResult.sessionData.isNew) {
+              throw new Error("Race condition error: expected existing session");
+            }
+
+            const indexedDB = await getDB();
+            const privateKeyPKCS8 = await indexedDB.get("keys", "userPrivateKey");
+            
+            if (!privateKeyPKCS8 || typeof privateKeyPKCS8 !== 'string') {
+              console.error("❌ Private key not found in IndexedDB. User needs to log in again.");
+              throw new Error("Private key not found. Please log in again to restore your encryption keys.");
+            }
+
+            const privateKey = await importPrivateKey(privateKeyPKCS8);
+            const decryptedKeyBase64 = await decryptSessionKey(
+              retryResult.sessionData.encryptedSessionKey,
+              privateKey
+            );
+            
+            const importedSessionKey = await importSessionKey(decryptedKeyBase64);
+            
+            if (isMounted) {
+              setSessionKey(importedSessionKey);
+              console.log("✅ Using existing session key from race condition");
             }
           } else {
             // We successfully created the session
@@ -294,9 +249,10 @@ function MessageBox() {
           }
         }
 
+        setChatExpired(false);
         setLoading(false);
       } catch (err) {
-        console.error("❌ Error initializing session key:", err);
+        console.error("❌ Error initializing chat session:", err);
         if (isMounted) {
           const errorMessage = err instanceof Error ? err.message : "Failed to initialize encryption";
           
@@ -312,12 +268,12 @@ function MessageBox() {
       }
     }
 
-    initSessionKey();
+    initChatSession();
 
     return () => {
       isMounted = false;
     };
-  }, [chatId, uid]);
+  }, [chatId, uid, router]);
 
   // Monitor chat for inactivity with real-time expiry detection
   useEffect(() => {
