@@ -6,6 +6,7 @@ import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from "fire
 import { db, rtdb } from "@/lib/firebase/firebase";
 import { ref, onValue } from "firebase/database";
 import ChatItem from "@/app/components/ChatItem";
+import { useChatContext } from "@/lib/context/ChatContext";
 
 interface Chat {
   id: string; // chatId or friend_${friendRequestId}
@@ -44,6 +45,7 @@ export default function ChatList({ uid }: ChatListProps) {
   const router = useRouter();
   const params = useParams();
   const currentChatId = params.chatid as string;
+  const { setChatMetadata } = useChatContext();
 
   // Use refs to store stable data references across listener updates
   const activeChatsRef = useRef<Chat[]>([]);
@@ -112,9 +114,20 @@ export default function ChatList({ uid }: ChatListProps) {
       );
 
       setUsernames(usernameMap);
+
+      // Populate chat context with metadata
+      chatList.forEach((chat) => {
+        const username = usernameMap[chat.otherParticipantId] || "Unknown";
+        setChatMetadata(chat.id, {
+          username,
+          userInitial: username[0]?.toUpperCase() || "?",
+          userId: chat.otherParticipantId,
+        });
+      });
+
       setLoading(false);
     }, 100); // 100ms debounce
-  }, [uid]);
+  }, [uid, setChatMetadata]);
 
   useEffect(() => {
     if (!uid) {

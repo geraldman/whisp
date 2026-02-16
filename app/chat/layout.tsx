@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ChatProvider } from '@/lib/context/ChatContext';
 import ChatSidebar from '@/app/components/ChatSidebar';
 import SettingsContent from '@/app/components/SettingsContent';
 import UserProfilePanel from '@/app/components/AddUser';
@@ -22,7 +23,8 @@ export default function ChatLayout({
     useState<SearchedUser | null>(null);
 
   return (
-    <div className="flex h-screen bg-[#F6F1E3]">
+    <ChatProvider>
+      <div className="flex h-screen bg-[#F6F1E3]">
       <ChatSidebar
         mode={mode}
         settingsView={settingsView}
@@ -48,5 +50,6 @@ export default function ChatLayout({
         )}
       </main>
     </div>
+    </ChatProvider>
   );
 }

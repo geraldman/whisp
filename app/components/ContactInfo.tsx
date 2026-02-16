@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 
 type ContactInfoProps = {
@@ -9,6 +10,8 @@ type ContactInfoProps = {
 
 export default function ContactInfo({ onClose }: ContactInfoProps) {
   const { user } = useAuth();
+  const params = useParams();
+  const chatId = params?.chatid as string;
   
   // Get user display info
   const username = user?.displayName || user?.email?.split('@')[0] || 'User';
@@ -110,10 +113,10 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
               <div>
                 <p className="text-xs uppercase tracking-wide
                               text-[#74512D]/60 mb-1">
-                  User ID
+                  Chat ID
                 </p>
-                <p className="text-sm text-[#543310]/85 leading-relaxed">
-                  {user?.uid || 'Loading...'}
+                <p className="text-sm text-[#543310]/85 leading-relaxed break-all">
+                  {chatId || 'No chat selected'}
                 </p>
               </div>
             </div>
