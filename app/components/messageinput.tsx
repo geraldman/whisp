@@ -98,16 +98,16 @@ function MessageInput() {
                 
                 // Ensure chat exists (handles cleanup/recreation)
                 const chatStatus = await ensureChatExists(chatId, uid);
-                
+
                 if (!chatStatus.success) {
                     console.error("❌ MessageInput: Chat not found:", chatStatus.error);
                     // Redirect to chat list if chat doesn't exist
                     router.replace("/chat");
                     return;
                 }
-                
+
                 const currentChatId = chatStatus.chatId;
-                
+
                 if (chatStatus.recreated) {
                     console.log("♻️ MessageInput: Chat was recreated with new ID:", currentChatId);
                     // Navigate to the new chat URL
@@ -116,7 +116,7 @@ function MessageInput() {
                 }
 
                 setActiveChatId(currentChatId);
-                
+
                 const sessionData = await getOrCreateSessionKey(currentChatId, uid);
 
                 if (sessionData.isNew) {
@@ -133,20 +133,20 @@ function MessageInput() {
                     console.log("🔑 MessageInput: Fetching public keys for participants:", participants);
                     const publicKeys = await getUserPublicKeys(participants);
                     console.log("✅ MessageInput: Retrieved public keys for:", Object.keys(publicKeys));
-                    
+
                     for (const participantId of participants) {
                         const publicKeyBase64 = publicKeys[participantId];
-                        
+
                         if (!publicKeyBase64) {
                             throw new Error(`Public key not found for participant ${participantId}`);
                         }
-                        
+
                         console.log(`🔐 MessageInput: Encrypting session key for participant: ${participantId}`);
                         const encryptedForParticipant = await encryptSessionKeyForUser(
                             sessionKeyBase64,
                             publicKeyBase64
                         );
-                        
+
                         encryptedKeys[`encryptedKey_${participantId}`] = encryptedForParticipant;
                         console.log(`✅ MessageInput: Encrypted session key for: ${participantId}`);
                     }
@@ -161,11 +161,11 @@ function MessageInput() {
                         console.log("⚠️ MessageInput: Session already existed, fetching and decrypting the existing session");
                         
                         const existingSessionData = await getOrCreateSessionKey(currentChatId, uid);
-                        
+
                         if (!existingSessionData.isNew) {
                             const indexedDB = await getDB();
                             const privateKeyPKCS8 = await indexedDB.get("keys", "userPrivateKey");
-                            
+
                             if (!privateKeyPKCS8 || typeof privateKeyPKCS8 !== 'string') {
                                 console.error("❌ Private key not found in IndexedDB. User needs to log in again.");
                                 throw new Error("Private key not found. Please log in again to restore your encryption keys.");
@@ -176,9 +176,9 @@ function MessageInput() {
                                 existingSessionData.encryptedSessionKey,
                                 privateKey
                             );
-                            
+
                             const importedSessionKey = await importSessionKey(decryptedKeyBase64);
-                            
+
                             if (isMounted) {
                                 setSessionKey(importedSessionKey);
                                 console.log("✅ MessageInput: Using existing session key from other user");
@@ -199,7 +199,7 @@ function MessageInput() {
                     
                     const indexedDB = await getDB();
                     const privateKeyPKCS8 = await indexedDB.get("keys", "userPrivateKey");
-                    
+
                     if (!privateKeyPKCS8) {
                         console.error("❌ Private key not found in IndexedDB. User needs to log in again.");
                         throw new Error("Private key not found. Please log in again to restore your encryption keys.");
@@ -212,12 +212,14 @@ function MessageInput() {
 
                     const privateKey = await importPrivateKey(privateKeyPKCS8);
                     console.log("🔐 MessageInput: Decrypting session key with user's private key");
+                    
                     const decryptedKeyBase64 = await decryptSessionKey(
                         sessionData.encryptedSessionKey,
                         privateKey
                     );
-                    
+
                     console.log("✅ MessageInput: Session key decrypted successfully");
+                    
                     const importedSessionKey = await importSessionKey(decryptedKeyBase64);
 
                     if (isMounted) {
@@ -227,6 +229,7 @@ function MessageInput() {
                 }
             } catch (err) {
                 console.error("❌ MessageInput: Error initializing session key:", err);
+                
                 if (isMounted) {
                     const errorMessage = err instanceof Error ? err.message : "Failed to initialize encryption";
                     
@@ -235,14 +238,14 @@ function MessageInput() {
                         router.push("/chat?error=notfound");
                         return;
                     }
-                    
+
                     // If private key is missing, redirect to login
                     if (errorMessage.includes("Private key not found") || errorMessage.includes("log in again")) {
                         console.log("↩️ Redirecting to login due to missing encryption keys...");
                         router.push("/login?error=keys_missing");
                         return;
                     }
-                    
+
                     setError(errorMessage);
                 }
             }
@@ -270,7 +273,7 @@ function MessageInput() {
 
         try {
             console.log("🔐 Encrypting message...");
-            
+
             // Encrypt message with session key
             const { encryptedContent, iv } = await encryptMessageWithSession(
                 message,
@@ -302,38 +305,90 @@ function MessageInput() {
     };
 
     return (
-        <div className="flex flex-col w-full">
+        <div className="px-6 py-4">
+            {/* Error Message (BACKEND LOGIC) */}
             {error && (
-                <div className="px-10 pb-2">
-                    <p className="text-red-500 text-sm">{error}</p>
+                <div className="mb-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {error}
                 </div>
             )}
-            <div className="flex flex-row w-full pb-5 px-10">
-                <textarea 
-                    name="" 
-                    id="" 
-                    className="w-9/10 p-2 border rounded-l-lg resize-none" 
-                    placeholder={sessionKey ? "Write your message here (encrypted)" : "Setting up encryption..."}
+
+            {/* Input Container (FRONTEND STYLING) */}
+            <div className="flex items-end gap-3">
+                
+                {/* TEXTAREA (FRONTEND STYLING) */}
+                <textarea
+                    className="
+                        flex-1 resize-none rounded-full px-4 py-2.5 text-sm
+                        bg-white text-[#2B1B12]
+                        outline-none
+                        border border-black/5
+                        focus:border-[#AF8F6F]/40
+                        shadow-sm
+                        disabled:bg-gray-50 disabled:text-gray-400
+                    "
+                    placeholder={sessionKey ? "Write your message…" : "Setting up encryption..."}
                     value={message}
+                    rows={1}
                     onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyPress}
                     disabled={sending || !sessionKey}
-                    rows={2}
                 />
-                <button 
-                    className="flex w-1/10 items-center justify-center"
-                    disabled={!message.trim() || sending || !sessionKey}
+
+                {/* SEND BUTTON (FRONTEND STYLING + BACKEND LOGIC) */}
+                <button
                     onClick={handleSend}
+                    disabled={!message.trim() || sending || !sessionKey}
+                    className={`
+                        w-10 h-10 rounded-full flex items-center justify-center
+                        transition-all
+                        ${
+                            message.trim() && !sending && sessionKey
+                                ? "bg-[#7A573A] hover:bg-[#6A4B33] shadow-md shadow-black/10"
+                                : "bg-[#CFC5BA] cursor-not-allowed"
+                        }
+                    `}
                 >
-                    <span className={`flex items-center justify-center rounded-full p-3 ${
-                        message.trim() && !sending && sessionKey ? 'bg-blue-500' : 'bg-gray-400'
-                    }`}>
-                        {sending ? (
-                            <span className="text-white text-xs">...</span>
-                        ) : (
-                            <img src="/sent-02-stroke-rounded.png" alt="Send" className="invert" />
-                        )}
-                    </span>
+                    {sending ? (
+                        <svg
+                            className="w-4 h-4 text-white animate-spin"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                            />
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                        </svg>
+                    ) : (
+                        <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M22 2L11 13"
+                            />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M22 2L15 22l-4-9-9-4 20-7z"
+                            />
+                        </svg>
+                    )}
                 </button>
             </div>
         </div>

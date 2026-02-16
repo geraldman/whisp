@@ -36,7 +36,7 @@ export default function SearchUserPage() {
     try {
       const res = await searchUserByNumericId(numericId);
 
-      if (!res.found) {
+      if (!res.found || !res.user) {
         setError("User tidak ditemukan");
       } else {
         setResult(res.user);

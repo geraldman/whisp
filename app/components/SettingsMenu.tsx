@@ -1,116 +1,79 @@
-"use client";
+'use client';
 
-import { auth, db } from "@/lib/firebase/firebase";
-import { useEffect, useState } from "react";
-import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import { acceptFriendRequest } from "@/app/actions/friend/acceptFriendRequest";
-import { logout } from "@/app/actions/logout";
-import { useRouter } from "next/navigation";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import type { SettingsView } from '@/app/chat/layout';
 
-export default function SettingsMenu({ onRequestHandled }: { onRequestHandled?: () => void }) {
-  const { user } = useRequireAuth();
-  const [requests, setRequests] = useState<any[]>([]);
-  const router = useRouter();
-
-useEffect(() => {
-  if (!user?.uid) return;
-
-  // Real-time listener for friend requests
-  const requestsQuery = query(
-    collection(db, "friend_requests"),
-    where("to", "==", user.uid),
-    where("status", "==", "pending")
-  );
-
-  const unsubscribe = onSnapshot(
-    requestsQuery,
-    (snapshot) => {
-      const data = snapshot.docs.map((doc) => {
-        const reqData = doc.data();
-        return {
-          id: doc.id,
-          from: reqData.from,
-          fromUsername: reqData.fromUsername ?? null,
-          to: reqData.to,
-          status: reqData.status,
-          chatId: reqData.chatId,
-          createdAt: reqData.createdAt ? reqData.createdAt.toMillis() : null,
-        };
-      });
-
-      // 🔒 HANYA REQUEST YANG PUNYA USERNAME
-      const validRequests = data.filter(
-        (r: any) => typeof r.fromUsername === "string" && r.fromUsername.trim() !== ""
-      );
-
-      setRequests(validRequests);
-    },
-    (error) => {
-      console.error("Failed to listen to friend requests:", error);
-    }
-  );
-
-  return () => unsubscribe();
-}, [user?.uid]);
-
-
-  async function handleAccept(reqId: string) {
-    const result = await acceptFriendRequest(reqId);
-    
-    // No need to manually refresh - real-time listener will update automatically
-    
-    // Notify parent (though not strictly needed with real-time listeners)
-    if (onRequestHandled) {
-      onRequestHandled();
-    }
-    
-    // Navigate to the newly created chat
-    if (result.chatId) {
-      router.push(`/chat/${result.chatId}`);
-    }
-  }
-
+export default function SettingsMenu({
+  active,
+  onChange,
+}: {
+  active: SettingsView;
+  onChange: (v: SettingsView) => void;
+}) {
   return (
-    <div
-      style={{
-        marginTop: 10,
-        border: "1px solid #ddd",
-        padding: 10,
-        borderRadius: 6,
-        background: "#fff",
-      }}
-    >
-      <p style={{ cursor: "pointer" }}>Profile</p>
-      <p style={{ cursor: "pointer" }}>Settings</p>
-      <p><strong>Friend Requests</strong></p>
+    <div className="px-4 py-5 flex flex-col gap-3">
+      {/* Title */}
+      <div className="mb-2">
+        <h2 className="text-lg font-semibold text-[#543310]">
+          Settings
+        </h2>
+        <p className="text-xs text-[#74512D]/70 mt-1">
+          Manage your account and preferences
+        </p>
+      </div>
 
-      {requests.length === 0 && (
-        <p style={{ fontSize: 12, color: "#999" }}>No requests</p>
-      )}
+      <Item
+        label="Profile"
+        desc="Personal information & identity"
+        active={active === 'profile'}
+        onClick={() => onChange('profile')}
+      />
 
-      {requests.map((r) => (
-        <div key={r.id} style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 13 }}>
-            From: <strong>{r.fromUsername}</strong>
-          </div>
-          <button
-            style={{ marginTop: 4 }}
-            onClick={() => handleAccept(r.id)}
-          >
-            Accept
-          </button>
-        </div>
-      ))}
+      <Item
+        label="Friend Requests"
+        desc="Manage incoming connections"
+        active={active === 'requests'}
+        onClick={() => onChange('requests')}
+      />
 
-      <hr />
-
-      <p
-        style={{ cursor: "pointer", color: "red" }}
-        onClick={() => logout()}
-      >
-        Logout
-      </p>
+      <Item
+        label="About"
+        desc="App info & security details"
+        active={active === 'about'}
+        onClick={() => onChange('about')}
+      />
     </div>
+  );
+}
+
+function Item({
+  label,
+  desc,
+  active,
+  onClick,
+}: {
+  label: string;
+  desc: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        cursor-pointer text-left px-3 py-3 rounded-xl transition
+        ${
+          active
+            ? 'bg-[#E6D5BC]'
+            : 'hover:bg-[#F1E3CD]'
+        }
+      `}
+    >
+      <p className="text-sm font-medium text-[#543310]">
+        {label}
+      </p>
+      <p className="text-[11px] text-[#74512D]/70 mt-0.5">
+        {desc}
+      </p>
+    </button>
   );
 }

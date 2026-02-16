@@ -1,22 +1,25 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import MessageInput from "@/app/components/messageinput";
 import MessageBox from "../../layout/messageBox";
+import ContactInfo from "@/app/components/ContactInfo";
 import { useState, useEffect } from "react";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { useAuth } from "@/lib/context/AuthContext";
 import { CHAT_INACTIVITY_TIMEOUT } from "@/lib/config/chatConfig";
 
 export default function ChatDetailPage() {
     const params = useParams();
-    const chatId = params.chatid as string;
+    const pathname = usePathname();
+    const chatId = params?.chatid as string;
     const { uid } = useAuth();
     const [chatExpired, setChatExpired] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+    const [showProfile, setShowProfile] = useState(false);
 
-    // Real-time countdown monitoring
+    // Real-time countdown monitoring (BACKEND LOGIC)
     useEffect(() => {
         if (!chatId || !uid || chatId.startsWith("friend_")) return;
 
@@ -44,7 +47,7 @@ export default function ChatDetailPage() {
             // Show countdown if less than 5 minutes remaining
             const fiveMinutes = 5 * 60 * 1000;
             if (remaining <= fiveMinutes) {
-                setTimeRemaining(Math.ceil(remaining / 1000)); // Convert to seconds
+                setTimeRemaining(Math.ceil(remaining / 1000));
             } else {
                 setTimeRemaining(null);
             }
@@ -65,7 +68,7 @@ export default function ChatDetailPage() {
                 const chatData = snapshot.data();
                 if (chatData.lastActivity) {
                     lastActivityTime = chatData.lastActivity.toMillis();
-                    updateCountdown(); // Update immediately when activity changes
+                    updateCountdown();
                 }
             },
             (error) => {
@@ -84,6 +87,11 @@ export default function ChatDetailPage() {
         };
     }, [chatId, uid]);
 
+    // Auto close profile on navigation (FRONTEND FEATURE)
+    useEffect(() => {
+        setShowProfile(false);
+    }, [pathname]);
+
     // Format countdown as MM:SS
     const formatCountdown = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -92,47 +100,72 @@ export default function ChatDetailPage() {
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            {/* Chat Header */}
-            <div style={{ 
-                padding: "15px", 
-                borderBottom: "1px solid #ccc",
-                fontWeight: "bold",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px"
-            }}>
-                <span>Chat ID: {chatId}</span>
+        <div className="relative flex flex-col h-full bg-[#EFE6D8]">
+            {/* ================= CHAT HEADER (FRONTEND STYLING) ================= */}
+            <div
+                className="h-14 px-6 flex items-center justify-between
+                           bg-[#E6D5BC]
+                           border border-[#74512D]/15"
+            >
+                {/* User Info */}
+                <div
+                    onClick={() => setShowProfile(true)}
+                    className="flex items-center gap-3 cursor-pointer
+                               hover:opacity-80 transition"
+                >
+                    <div
+                        className="w-8 h-8 rounded-full bg-white border border-black/10
+                                   flex items-center justify-center
+                                   text-xs font-medium text-[#2B1B12]"
+                    >
+                        A
+                    </div>
+
+                    <div className="leading-tight">
+                        <p className="text-sm font-medium text-[#2B1B12]">
+                            Chat ID: {chatId.substring(0, 8)}...
+                        </p>
+                        <p className="text-[11px] text-black/50">
+                            End-to-end encrypted
+                        </p>
+                    </div>
+                </div>
+
+                {/* Countdown Timer (BACKEND FEATURE) */}
                 {timeRemaining !== null && (
-                    <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "4px 12px",
-                        backgroundColor: timeRemaining <= 60 ? "#fee" : "#fff3cd",
-                        border: `1px solid ${timeRemaining <= 60 ? "#f5c6cb" : "#ffeaa7"}`,
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        color: timeRemaining <= 60 ? "#dc3545" : "#856404"
-                    }}>
-                        <span style={{ fontSize: "16px" }}>⏱️</span>
+                    <div
+                        className={`
+                            flex items-center gap-2 px-3 py-1.5 rounded-lg
+                            text-sm font-semibold
+                            ${timeRemaining <= 60
+                                ? 'bg-red-50 border border-red-200 text-red-600'
+                                : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
+                            }
+                        `}
+                    >
+                        <span className="text-base">⏱️</span>
                         <span>{formatCountdown(timeRemaining)}</span>
                     </div>
                 )}
             </div>
 
-            {/* Messages Area */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            {/* ================= MESSAGES (BACKEND COMPONENT) ================= */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 chat-scroll">
                 <MessageBox />
             </div>
 
-            {/* Message Input - only show container if chat not expired */}
+            {/* ================= INPUT (BACKEND COMPONENT - only if not expired) ================= */}
             {!chatExpired && (
-                <div style={{ padding: "15px", borderTop: "1px solid #ccc" }}>
+                <div className="px-6 py-4 bg-[#E6D5BC] border-t border-[#74512D]/15">
                     <MessageInput />
                 </div>
             )}
+
+            {/* ================= CONTACT INFO SHEET (FRONTEND FEATURE) ================= */}
+            {showProfile && (
+                <ContactInfo onClose={() => setShowProfile(false)} />
+            )}
         </div>
     );
-} 
+}
+
