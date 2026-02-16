@@ -68,21 +68,25 @@ export default function LoginPage() {
 
     if (!identifier.trim()) {
       setError("Email is required");
+      setLoading(false);
       return;
     }
 
     if (!isValidEmail(identifier.trim())) {
       setError("Please enter a valid email address");
+      setLoading(false);
       return;
     }
 
     if (!password) {
       setError("Password is required");
+      setLoading(false);
       return;
     }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      setLoading(false);
       return;
     }
 
