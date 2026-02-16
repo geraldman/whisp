@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
+import { AnimatePresence } from "framer-motion";
 import MessageInput from "@/app/components/messageinput";
 import MessageBox from "../../layout/messageBox";
 import ContactInfo from "@/app/components/ContactInfo";
@@ -162,9 +163,11 @@ export default function ChatDetailPage() {
             )}
 
             {/* ================= CONTACT INFO SHEET (FRONTEND FEATURE) ================= */}
-            {showProfile && (
-                <ContactInfo onClose={() => setShowProfile(false)} />
-            )}
+            <AnimatePresence>
+                {showProfile && (
+                    <ContactInfo onClose={() => setShowProfile(false)} />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

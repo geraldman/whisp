@@ -75,14 +75,14 @@ export default function ChatSidebar({
     try {
       await fetch('/api/logout', { method: 'POST' });
     } finally {
-      router.replace('/');
+      router.replace('/logout');
     }
   }
 
   // BACKEND: Get user display info
   const username = user?.displayName || user?.email?.split('@')[0] || 'User';
   const userInitial = username[0]?.toUpperCase() || 'U';
-  const userId = (user as any)?.numId || '000000'; // Assuming numId exists on user
+  const userId = (user as any)?.numericId || '00000000';
 
   return (
     <>

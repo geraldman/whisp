@@ -85,7 +85,7 @@ export default function ProfileContent() {
               {user?.displayName || user?.email?.split('@')[0] || 'User'}
             </h2>
             <p className="text-sm text-[#74512D]/70">
-              ID · {(user as any)?.numId || '00000000'}
+              ID · {(user as any)?.numericId || '00000000'}
             </p>
           </div>
 
