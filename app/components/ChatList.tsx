@@ -266,14 +266,8 @@ export default function ChatList({ uid }: ChatListProps) {
 
   if (loading) {
     return (
-      <div style={{ 
-        flex: 1, 
-        borderTop: "1px solid #e0e0e0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
-        <div style={{ fontSize: 14, color: "#999" }}>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-sm text-[#8A7F73]">
           Loading chats...
         </div>
       </div>
@@ -282,15 +276,8 @@ export default function ChatList({ uid }: ChatListProps) {
 
   if (chats.length === 0) {
     return (
-      <div style={{ 
-        flex: 1, 
-        borderTop: "1px solid #e0e0e0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16
-      }}>
-        <div style={{ fontSize: 14, color: "#999", textAlign: "center" }}>
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-sm text-[#8A7F73] text-center">
           No chats yet. Search for a user to start chatting!
         </div>
       </div>
@@ -298,16 +285,7 @@ export default function ChatList({ uid }: ChatListProps) {
   }
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #e0e0e0" }}>
-      <div style={{ 
-        padding: "12px 16px", 
-        fontWeight: "bold", 
-        fontSize: 14,
-        backgroundColor: "#f5f5f5",
-        borderBottom: "1px solid #e0e0e0"
-      }}>
-        Chats
-      </div>
+    <div className="flex-1 overflow-y-auto px-2 pb-4">
       {chats.map((chat) => {
         const otherUsername = usernames[chat.otherParticipantId] || "Loading...";
         const isActive = currentChatId === chat.id;
@@ -315,74 +293,74 @@ export default function ChatList({ uid }: ChatListProps) {
         const isOnline = presence?.online || false;
 
         return (
-          <div
+          <ChatItem
             key={chat.id}
+            username={otherUsername}
+            chatExpired={!chat.chatExists}
+            isOnline={isOnline}
+            active={isActive}
             onClick={() => router.push(`/chat/${chat.id}`)}
-            style={{
-              padding: "12px 16px",
-              cursor: "pointer",
-              borderBottom: "1px solid #f0f0f0",
-              backgroundColor: isActive ? "#e3f2fd" : "transparent",
-              transition: "background-color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }
-            }}
-          >
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "space-between" 
-            }}>
-              <div style={{ 
-                display: "flex", 
-                flexDirection: "column",
-                gap: 2
-              }}>
-                <div style={{ fontWeight: isActive ? "bold" : "normal", fontSize: 14 }}>
-                  {otherUsername}
-                </div>
-                {!chat.chatExists && (
-                  <div style={{ 
-                    fontSize: 10, 
-                    color: "#ff9800",
-                    fontStyle: "italic"
-                  }}>
-                    Chat expired - click to restore
-                  </div>
-                )}
-              </div>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 4 
-              }}>
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: isOnline ? "#4caf50" : "#9e9e9e",
-                  }}
-                />
-                <span style={{ 
-                  fontSize: 11, 
-                  color: isOnline ? "#4caf50" : "#9e9e9e" 
-                }}>
-                  {isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-          </div>
+          />
         );
       })}
+    </div>
+  );
+}
+
+
+/* ================= CHAT ITEM ================= */
+function ChatItem({
+  username,
+  chatExpired,
+  isOnline,
+  active,
+  onClick,
+}: {
+  username: string;
+  chatExpired: boolean;
+  isOnline: boolean;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className={`mx-1 mb-2 rounded-xl px-3 py-3 flex items-center gap-3 cursor-pointer
+        border border-[#74512D]/15 transition-all
+        ${
+          active
+            ? 'bg-[#E6D5BC] shadow-[0_8px_22px_rgba(84,51,16,0.22)]'
+            : 'bg-white hover:bg-[#F1E3CD] shadow-[0_4px_14px_rgba(84,51,16,0.14)]'
+        }`}
+    >
+      {/* Avatar with status indicator */}
+      <div className="relative">
+        <div className="w-9 h-9 rounded-full bg-white border border-[#74512D]/25 flex items-center justify-center">
+          <span className="text-xs font-medium text-[#543310]">
+            {username[0]?.toUpperCase() || '?'}
+          </span>
+        </div>
+        {/* Status dot */}
+        <div
+          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white
+            ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+        />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-[#543310] truncate">
+          {username}
+        </p>
+        {chatExpired ? (
+          <p className="text-[10px] text-orange-600 italic">
+            Chat expired - click to restore
+          </p>
+        ) : (
+          <p className="text-xs text-[#74512D]/70">
+            {isOnline ? 'Online' : 'Offline'}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
