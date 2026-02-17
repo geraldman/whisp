@@ -20,6 +20,9 @@ export async function addFriendAndCreateChat(
   }
 
   const fromUser = userSnap.data();
+  if (!fromUser) {
+    throw new Error("User data not found");
+  }
   const fromUsername = fromUser.username;
 
   // 1️⃣ Check if there's already a pending request or existing chat

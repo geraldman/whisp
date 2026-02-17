@@ -6,12 +6,14 @@ import { db } from "@/lib/firebase/firebase";
 import { useAuth } from "@/lib/context/AuthContext";
 import SettingsMenu from "./SettingsMenu";
 import NotificationBadge from "./NotificationBadge";
+import type { SettingsView } from "@/app/chat/layout";
 
 export default function ProfileSection() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
+  const [settingsView, setSettingsView] = useState<SettingsView>("profile");
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -98,9 +100,8 @@ export default function ProfileSection() {
       {/* SETTINGS MENU */}
       {openSettings && (
         <SettingsMenu
-          onRequestHandled={() => {
-            // Real-time listener handles updates automatically
-          }}
+          active={settingsView}
+          onChange={setSettingsView}
         />
       )}
     </div>
