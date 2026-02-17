@@ -15,9 +15,11 @@ export default function MessageComponent({
     >
       <div
         className={`
-          px-4 py-2.5 rounded-2xl max-w-[70%]
+          px-3 md:px-4 py-2 md:py-2.5 rounded-2xl 
+          max-w-[85%] sm:max-w-[75%] md:max-w-[70%]
           text-sm leading-relaxed
           shadow-sm
+          break-words
           ${
             from === "send"
               ? "bg-[#7A573A] text-white rounded-br-md"

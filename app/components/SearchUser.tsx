@@ -36,9 +36,13 @@ export default function SearchUser({
 
     if (!res.found) {
       setError('User tidak ditemukan');
-    } else {
-      // Pass the result to parent
-      onSearchResult(res.user);
+    } else if (res.user) {
+      // Map the response to match SearchedUser type
+      onSearchResult({
+        id: res.user.uid,
+        name: res.user.username,
+        isFriend: false // Will be determined by parent
+      });
     }
   }
 

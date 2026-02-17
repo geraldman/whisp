@@ -17,7 +17,7 @@ interface FriendRequest {
   createdAt: number | null;
 }
 
-export default function RequestsContent() {
+export default function RequestsContent({ onBack }: { onBack: () => void }) {
   const { uid } = useAuth();
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +83,7 @@ export default function RequestsContent() {
     <Section
       title="Friend Requests"
       description="Manage incoming connection requests"
+      onBack={onBack}
     >
       {loading ? (
         <p className="text-sm text-[#74512D]/70">Loading requests...</p>
@@ -130,13 +131,25 @@ function Section({
   title,
   description,
   children,
+  onBack,
 }: {
   title: string;
   description?: string;
   children: React.ReactNode;
+  onBack: () => void;
 }) {
   return (
     <div className="h-full bg-[#F6F1E3] px-10 py-8">
+      {/* Back Button - Mobile Only */}
+      <button
+        onClick={onBack}
+        className="md:hidden mb-6 flex items-center gap-2 text-[#74512D] hover:text-[#543310] transition"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <h1 className="text-xl font-semibold text-[#543310]">
         {title}
       </h1>

@@ -26,23 +26,34 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="absolute inset-0 bg-black/25"
+        className="absolute inset-0 bg-black/25 md:bg-black/25"
         onClick={onClose}
       />
 
       {/* SIDE SHEET */}
       <motion.div
-        initial={{ x: 360 }}
+        initial={{ x: '100%' }}
         animate={{ x: 0 }}
-        exit={{ x: 360 }}
+        exit={{ x: '100%' }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="absolute right-0 top-0 w-[360px] h-full bg-[#F6F1E3]
+        className="absolute right-0 top-0 
+                   w-full md:w-[360px] 
+                   h-full bg-[#F6F1E3]
                    shadow-[-8px_0_24px_rgba(0,0,0,0.18)]
                    flex flex-col"
       >
         {/* HEADER */}
-        <div className="px-5 h-14 flex items-center justify-between
+        <div className="px-4 md:px-5 h-14 flex items-center justify-between
                         border-b border-[#74512D]/10">
+          <button
+            onClick={onClose}
+            className="md:hidden cursor-pointer w-9 h-9 flex items-center justify-center
+                       rounded-lg text-[#74512D]
+                       hover:bg-[#E6D5BC] transition"
+          >
+            ←
+          </button>
+
           <p className="text-sm font-semibold text-[#543310]">
             Contact Info
           </p>
@@ -58,7 +69,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto px-5 py-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-5 py-6">
           {/* PROFILE */}
           <div className="flex flex-col items-center text-center mb-8">
             <div

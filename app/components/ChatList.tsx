@@ -7,6 +7,7 @@ import { db, rtdb } from "@/lib/firebase/firebase";
 import { ref, onValue } from "firebase/database";
 import ChatItem from "@/app/components/ChatItem";
 import { useChatContext } from "@/lib/context/ChatContext";
+import { useSidebar } from "@/lib/context/SidebarContext";
 
 interface Chat {
   id: string; // chatId or friend_${friendRequestId}
@@ -46,6 +47,7 @@ export default function ChatList({ uid }: ChatListProps) {
   const params = useParams();
   const currentChatId = params.chatid as string;
   const { setChatMetadata } = useChatContext();
+  const { setSidebarOpen } = useSidebar();
 
   // Use refs to store stable data references across listener updates
   const activeChatsRef = useRef<Chat[]>([]);
@@ -313,7 +315,10 @@ export default function ChatList({ uid }: ChatListProps) {
             chatExpired={!chat.chatExists}
             isOnline={isOnline}
             active={isActive}
-            onClick={() => router.push(`/chat/${chat.id}`)}
+            onClick={() => {
+              router.push(`/chat/${chat.id}`);
+              setSidebarOpen(false);
+            }}
           />
         );
       })}
