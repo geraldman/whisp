@@ -11,7 +11,7 @@ import { routes } from "@/app/routes";
 import { createAccountProcedureSimplified } from "@/lib/crypto";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
-import LoadingScreen from "@/app/components/LoadingScreen";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 export default function RegisterPage() {
   const router = useRouter();

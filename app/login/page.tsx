@@ -13,7 +13,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
 import { deriveKeyFromPassword } from "@/lib/crypto/keyStore";
 import { aesDecrypt } from "@/lib/crypto/aes";
-import LoadingScreen from "@/app/components/LoadingScreen";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 export default function LoginPage() {
   const router = useRouter();
