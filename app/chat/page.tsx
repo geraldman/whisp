@@ -2,14 +2,19 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import { useSidebar } from "@/lib/context/SidebarContext";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 function ChatPageContent() {
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, loading } = useRequireAuth();
   const { toggleSidebar } = useSidebar();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (loading || !user) {
+    return <LoadingScreen />;
+  }
 
   // Backend error handling logic
   useEffect(() => {

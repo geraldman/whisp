@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { ChatProvider } from '@/lib/context/ChatContext';
 import { SidebarProvider, useSidebar } from '@/lib/context/SidebarContext';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import ChatSidebar from '@/app/components/ChatSidebar';
 import SettingsContent from '@/app/components/SettingsContent';
 import UserProfilePanel from '@/app/components/AddUser';
+import LoadingScreen from '@/app/components/LoadingScreenFixed';
 import type { SearchedUser } from '@/app/components/SearchUser';
 
 export type SidebarMode = 'chat' | 'settings';
@@ -16,10 +18,15 @@ function ChatLayoutInner({
 }: {
   children: React.ReactNode;
 }) {
+  const { user, loading } = useRequireAuth();
   const [mode, setMode] = useState<SidebarMode>('chat');
   const [settingsView, setSettingsView] =
     useState<SettingsView>('profile');
   const { sidebarOpen, setSidebarOpen } = useSidebar();
+
+  if (loading || !user) {
+    return <LoadingScreen />;
+  }
 
   const [searchedUser, setSearchedUser] =
     useState<SearchedUser | null>(null);

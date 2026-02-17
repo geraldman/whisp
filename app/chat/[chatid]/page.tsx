@@ -8,21 +8,27 @@ import ContactInfo from "@/app/components/ContactInfo";
 import { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
 import { useChatContext } from "@/lib/context/ChatContext";
 import { useSidebar } from "@/lib/context/SidebarContext";
 import { CHAT_INACTIVITY_TIMEOUT } from "@/lib/config/chatConfig";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 export default function ChatDetailPage() {
     const params = useParams();
     const pathname = usePathname();
     const chatId = params?.chatid as string;
-    const { uid } = useAuth();
+    const { user, loading } = useRequireAuth();
+    const uid = user?.uid;
     const { getChatMetadata } = useChatContext();
     const { toggleSidebar } = useSidebar();
     const [chatExpired, setChatExpired] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [showProfile, setShowProfile] = useState(false);
+
+    if (loading || !user) {
+        return <LoadingScreen />;
+    }
 
     // Get chat metadata from context
     const chatMetadata = getChatMetadata(chatId);
