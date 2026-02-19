@@ -1,24 +1,59 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
+import { useAuth } from "@/lib/context/AuthContext";
+
 type ContactInfoProps = {
   onClose: () => void;
 };
 
 export default function ContactInfo({ onClose }: ContactInfoProps) {
+  const { user } = useAuth();
+  const params = useParams();
+  const chatId = params?.chatid as string;
+  
+  // Get user display info
+  const username = user?.displayName || user?.email?.split('@')[0] || 'User';
+  const userInitial = username[0]?.toUpperCase() || 'U';
+  const userId = (user as any)?.numericId || '00000000';
+
   return (
-    <div className="absolute inset-0 z-50 flex">
+    <div className="absolute inset-0 z-50">
       {/* OVERLAY */}
-      <div className="flex-1 bg-black/25" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-0 bg-black/25 md:bg-black/25"
+        onClick={onClose}
+      />
 
       {/* SIDE SHEET */}
-      <div
-        className="w-[360px] h-full bg-[#F6F1E3]
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="absolute right-0 top-0 
+                   w-full md:w-[360px] 
+                   h-full bg-[#F6F1E3]
                    shadow-[-8px_0_24px_rgba(0,0,0,0.18)]
                    flex flex-col"
       >
         {/* HEADER */}
-        <div className="px-5 h-14 flex items-center justify-between
+        <div className="px-4 md:px-5 h-14 flex items-center justify-between
                         border-b border-[#74512D]/10">
+          <button
+            onClick={onClose}
+            className="md:hidden cursor-pointer w-9 h-9 flex items-center justify-center
+                       rounded-lg text-[#74512D]
+                       hover:bg-[#E6D5BC] transition"
+          >
+            ←
+          </button>
+
           <p className="text-sm font-semibold text-[#543310]">
             Contact Info
           </p>
@@ -34,7 +69,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto px-5 py-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-5 py-6">
           {/* PROFILE */}
           <div className="flex flex-col items-center text-center mb-8">
             <div
@@ -43,12 +78,12 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
                          flex items-center justify-center mb-3"
             >
               <span className="text-3xl font-semibold text-[#543310]">
-                A
+                {userInitial}
               </span>
             </div>
 
             <p className="text-lg font-semibold text-[#543310]">
-              Aliceeee_
+              {username}
             </p>
 
             <div
@@ -56,7 +91,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
                          bg-[#E6D5BC]/60
                          text-[11px] text-[#74512D]"
             >
-              ID · 567832
+              ID · {userId}
             </div>
           </div>
 
@@ -70,10 +105,10 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
               <div>
                 <p className="text-xs uppercase tracking-wide
                               text-[#74512D]/60 mb-1">
-                  Bio
+                  Email
                 </p>
                 <p className="text-sm text-[#543310] leading-relaxed">
-                  Frontend enthusiast. Love to chat!
+                  {user?.email || 'No email available'}
                 </p>
               </div>
             </div>
@@ -89,10 +124,10 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
               <div>
                 <p className="text-xs uppercase tracking-wide
                               text-[#74512D]/60 mb-1">
-                  About
+                  Chat ID
                 </p>
-                <p className="text-sm text-[#543310]/85 leading-relaxed">
-                  HI, I'm Alice
+                <p className="text-sm text-[#543310]/85 leading-relaxed break-all">
+                  {chatId || 'No chat selected'}
                 </p>
               </div>
             </div>
@@ -110,7 +145,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
             Delete friend
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

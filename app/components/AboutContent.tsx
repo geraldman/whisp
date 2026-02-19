@@ -3,9 +3,19 @@
 import { motion } from 'framer-motion';
 import LockIcon from '@/app/components/icons/LockIcon';
 
-export default function AboutContent() {
+export default function AboutContent({ onBack }: { onBack: () => void }) {
   return (
     <div className="h-full overflow-y-auto bg-[#F6F1E3] px-10 py-8">
+
+      {/* Back Button - Mobile Only */}
+      <button
+        onClick={onBack}
+        className="md:hidden mb-6 flex items-center gap-2 text-[#74512D] hover:text-[#543310] transition"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
       {/* HEADER */}
       <motion.h1

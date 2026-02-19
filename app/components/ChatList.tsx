@@ -5,6 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { db, rtdb } from "@/lib/firebase/firebase";
 import { ref, onValue } from "firebase/database";
+import ChatItem from "@/app/components/ChatItem";
+import { useChatContext } from "@/lib/context/ChatContext";
+import { useSidebar } from "@/lib/context/SidebarContext";
 
 interface Chat {
   id: string; // chatId or friend_${friendRequestId}
@@ -43,6 +46,8 @@ export default function ChatList({ uid }: ChatListProps) {
   const router = useRouter();
   const params = useParams();
   const currentChatId = params.chatid as string;
+  const { setChatMetadata } = useChatContext();
+  const { setSidebarOpen } = useSidebar();
 
   // Use refs to store stable data references across listener updates
   const activeChatsRef = useRef<Chat[]>([]);
@@ -111,9 +116,20 @@ export default function ChatList({ uid }: ChatListProps) {
       );
 
       setUsernames(usernameMap);
+
+      // Populate chat context with metadata
+      chatList.forEach((chat) => {
+        const username = usernameMap[chat.otherParticipantId] || "Unknown";
+        setChatMetadata(chat.id, {
+          username,
+          userInitial: username[0]?.toUpperCase() || "?",
+          userId: chat.otherParticipantId,
+        });
+      });
+
       setLoading(false);
     }, 100); // 100ms debounce
-  }, [uid]);
+  }, [uid, setChatMetadata]);
 
   useEffect(() => {
     if (!uid) {
@@ -266,14 +282,8 @@ export default function ChatList({ uid }: ChatListProps) {
 
   if (loading) {
     return (
-      <div style={{ 
-        flex: 1, 
-        borderTop: "1px solid #e0e0e0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
-        <div style={{ fontSize: 14, color: "#999" }}>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-sm text-[#8A7F73]">
           Loading chats...
         </div>
       </div>
@@ -282,15 +292,8 @@ export default function ChatList({ uid }: ChatListProps) {
 
   if (chats.length === 0) {
     return (
-      <div style={{ 
-        flex: 1, 
-        borderTop: "1px solid #e0e0e0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16
-      }}>
-        <div style={{ fontSize: 14, color: "#999", textAlign: "center" }}>
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-sm text-[#8A7F73] text-center">
           No chats yet. Search for a user to start chatting!
         </div>
       </div>
@@ -298,16 +301,7 @@ export default function ChatList({ uid }: ChatListProps) {
   }
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #e0e0e0" }}>
-      <div style={{ 
-        padding: "12px 16px", 
-        fontWeight: "bold", 
-        fontSize: 14,
-        backgroundColor: "#f5f5f5",
-        borderBottom: "1px solid #e0e0e0"
-      }}>
-        Chats
-      </div>
+    <div className="flex-1 overflow-y-auto px-2 pb-4">
       {chats.map((chat) => {
         const otherUsername = usernames[chat.otherParticipantId] || "Loading...";
         const isActive = currentChatId === chat.id;
@@ -315,72 +309,17 @@ export default function ChatList({ uid }: ChatListProps) {
         const isOnline = presence?.online || false;
 
         return (
-          <div
+          <ChatItem
             key={chat.id}
-            onClick={() => router.push(`/chat/${chat.id}`)}
-            style={{
-              padding: "12px 16px",
-              cursor: "pointer",
-              borderBottom: "1px solid #f0f0f0",
-              backgroundColor: isActive ? "#e3f2fd" : "transparent",
-              transition: "background-color 0.2s",
+            username={otherUsername}
+            chatExpired={!chat.chatExists}
+            isOnline={isOnline}
+            active={isActive}
+            onClick={() => {
+              router.push(`/chat/${chat.id}`);
+              setSidebarOpen(false);
             }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "#f5f5f5";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }
-            }}
-          >
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "space-between" 
-            }}>
-              <div style={{ 
-                display: "flex", 
-                flexDirection: "column",
-                gap: 2
-              }}>
-                <div style={{ fontWeight: isActive ? "bold" : "normal", fontSize: 14 }}>
-                  {otherUsername}
-                </div>
-                {!chat.chatExists && (
-                  <div style={{ 
-                    fontSize: 10, 
-                    color: "#ff9800",
-                    fontStyle: "italic"
-                  }}>
-                    Chat expired - click to restore
-                  </div>
-                )}
-              </div>
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 4 
-              }}>
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: isOnline ? "#4caf50" : "#9e9e9e",
-                  }}
-                />
-                <span style={{ 
-                  fontSize: 11, 
-                  color: isOnline ? "#4caf50" : "#9e9e9e" 
-                }}>
-                  {isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-          </div>
+          />
         );
       })}
     </div>

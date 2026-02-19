@@ -3,59 +3,42 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/context/AuthContext';
-import Input from './Input';
 
 type AlertType = 'success' | 'error' | null;
 
-export default function ProfileContent() {
+export default function ProfileContent({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
   
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    bio: '',
-    description: '',
-  });
-
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{
     type: AlertType;
     message: string;
   } | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
-  async function handleSave() {
+  async function handleDeleteAccount() {
     if (loading) return;
 
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
     setAlert(null);
-
-    if (!form.username.trim()) {
-      setAlert({ type: 'error', message: 'Username and email are required' });
-      return;
-    }
-
-    if (!form.email.trim()) {
-      setAlert({ type: 'error', message: 'Username and email are required' });
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // simulate API call
+      // TODO: Implement account deletion
       await new Promise((res) => setTimeout(res, 1000));
 
       setAlert({
         type: 'success',
-        message: 'Profile updated successfully',
+        message: 'Account deletion initiated',
       });
     } catch {
       setAlert({
         type: 'error',
-        message: 'Failed to save changes',
+        message: 'Failed to delete account',
       });
     } finally {
       setLoading(false);
@@ -64,6 +47,16 @@ export default function ProfileContent() {
 
   return (
     <div className="h-full overflow-y-auto bg-[#F6F1E3] px-8 py-10">
+      {/* Back Button - Mobile Only */}
+      <button
+        onClick={onBack}
+        className="md:hidden mb-6 flex items-center gap-2 text-[#74512D] hover:text-[#543310] transition"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <div className="max-w-xl mx-auto">
 
         {/* AVATAR */}
@@ -85,39 +78,40 @@ export default function ProfileContent() {
               {user?.displayName || user?.email?.split('@')[0] || 'User'}
             </h2>
             <p className="text-sm text-[#74512D]/70">
-              ID · {(user as any)?.numId || '00000000'}
+              ID · {(user as any)?.numericId || '00000000'}
             </p>
           </div>
 
           <div className="space-y-4">
-            <Input
-              label="Username"
-              name="username"
-              placeholder="Whisp_user"
-              value={form.username}
-              onChange={handleChange}
-            />
-            <Input
-              label="Email"
-              name="email"
-              placeholder="whisp@example.com"
-              value={form.email}
-              onChange={handleChange}
-            />
-            <Input
-              label="Bio"
-              name="bio"
-              placeholder="Short bio about yourself"
-              value={form.bio}
-              onChange={handleChange}
-            />
-            <Input
-              label="Description"
-              name="description"
-              placeholder="Tell something more..."
-              value={form.description}
-              onChange={handleChange}
-            />
+            {/* Username */}
+            <div className="rounded-xl bg-white/70 border border-[#74512D]/10 p-4">
+              <p className="text-xs uppercase tracking-wide text-[#74512D]/60 mb-1">
+                Username
+              </p>
+              <p className="text-sm text-[#543310] font-medium">
+                {user?.displayName || user?.email?.split('@')[0] || 'Not set'}
+              </p>
+            </div>
+
+            {/* Email */}
+            <div className="rounded-xl bg-white/70 border border-[#74512D]/10 p-4">
+              <p className="text-xs uppercase tracking-wide text-[#74512D]/60 mb-1">
+                Email
+              </p>
+              <p className="text-sm text-[#543310] font-medium break-all">
+                {user?.email || 'No email'}
+              </p>
+            </div>
+
+            {/* UID */}
+            <div className="rounded-xl bg-white/70 border border-[#74512D]/10 p-4">
+              <p className="text-xs uppercase tracking-wide text-[#74512D]/60 mb-1">
+                User ID (UID)
+              </p>
+              <p className="text-xs text-[#543310] font-mono break-all">
+                {user?.uid || 'Loading...'}
+              </p>
+            </div>
           </div>
 
           {/* ALERT */}
@@ -139,19 +133,20 @@ export default function ProfileContent() {
           </AnimatePresence>
 
           {/* ACTION */}
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8">
             <button
-              onClick={handleSave}
+              onClick={handleDeleteAccount}
               disabled={loading}
-              className="cursor-pointer px-6 py-2.5 rounded-full
-                         bg-[#74512D] text-white
-                         text-sm font-medium
-                         hover:bg-[#5f3f22]
-                         transition shadow-sm
+              className="cursor-pointer w-full py-3 rounded-xl
+                         border border-red-500/25
+                         text-red-600 text-sm font-medium
+                         hover:bg-red-50
+                         active:scale-[0.98]
+                         transition
                          disabled:opacity-60
                          disabled:cursor-not-allowed"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Deleting...' : 'Delete Account'}
             </button>
           </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import type { SettingsView } from '@/app/chat/layout';
+import { useSidebar } from '@/lib/context/SidebarContext';
 
 export default function SettingsMenu({
   active,
@@ -9,6 +10,13 @@ export default function SettingsMenu({
   active: SettingsView;
   onChange: (v: SettingsView) => void;
 }) {
+  const { setSidebarOpen } = useSidebar();
+
+  const handleClick = (view: SettingsView) => {
+    onChange(view);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="px-4 py-5 flex flex-col gap-3">
       {/* Title */}
@@ -25,21 +33,21 @@ export default function SettingsMenu({
         label="Profile"
         desc="Personal information & identity"
         active={active === 'profile'}
-        onClick={() => onChange('profile')}
+        onClick={() => handleClick('profile')}
       />
 
       <Item
         label="Friend Requests"
         desc="Manage incoming connections"
         active={active === 'requests'}
-        onClick={() => onChange('requests')}
+        onClick={() => handleClick('requests')}
       />
 
       <Item
         label="About"
         desc="App info & security details"
         active={active === 'about'}
-        onClick={() => onChange('about')}
+        onClick={() => handleClick('about')}
       />
     </div>
   );

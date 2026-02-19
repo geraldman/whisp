@@ -2,11 +2,18 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase/firebase";
+import { auth, db } from "@/lib/firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { useUserPresence } from "@/lib/hooks/useUserPresence";
 
+// Extended user type with Firestore custom fields
+interface ExtendedUser extends User {
+  numericId?: string;
+  username?: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: ExtendedUser | null;
   uid: string | null;
   loading: boolean;
 }
@@ -18,7 +25,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Track user presence (online/offline)
@@ -54,19 +61,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (firebaseUser) {
         // User is logged in via Firebase
-        setUser(firebaseUser);
+        // Set user immediately (non-blocking)
+        setUser(firebaseUser as ExtendedUser);
         setLoading(false);
 
-        // Clean up inactive chats on login
-        try {
-          const { cleanupInactiveChats } = await import("@/app/actions/cleanupInactiveChats");
-          const result = await cleanupInactiveChats(firebaseUser.uid);
-          if (result.deletedCount && result.deletedCount > 0) {
-            console.log(`AuthContext: Cleaned up ${result.deletedCount} inactive chat(s)`);
+        // Fetch Firestore user data in background (non-blocking)
+        (async () => {
+          try {
+            const userDocRef = doc(db, "users", firebaseUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            
+            if (userDoc.exists() && isMounted) {
+              const userData = userDoc.data();
+              // Merge Firebase Auth user with Firestore data
+              const extendedUser: ExtendedUser = {
+                ...firebaseUser,
+                numericId: userData.numericId,
+                username: userData.username,
+              };
+              setUser(extendedUser);
+              console.log("AuthContext: Fetched numericId:", userData.numericId);
+            }
+          } catch (error) {
+            console.error("AuthContext: Failed to fetch user data from Firestore:", error);
           }
-        } catch (error) {
-          console.error("AuthContext: Failed to cleanup inactive chats:", error);
-        }
+        })();
+
+        // Clean up inactive chats on login (non-blocking)
+        (async () => {
+          try {
+            const { cleanupInactiveChats } = await import("@/app/actions/cleanupInactiveChats");
+            const result = await cleanupInactiveChats(firebaseUser.uid);
+            if (result.deletedCount && result.deletedCount > 0) {
+              console.log(`AuthContext: Cleaned up ${result.deletedCount} inactive chat(s)`);
+            }
+          } catch (error) {
+            console.error("AuthContext: Failed to cleanup inactive chats:", error);
+          }
+        })();
       } else {
         // User is NOT logged in via Firebase - completely delete IndexedDB
         console.log("AuthContext: No Firebase user, deleting IndexedDB");

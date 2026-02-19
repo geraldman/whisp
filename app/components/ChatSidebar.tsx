@@ -2,12 +2,15 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
 import { useAuth } from '@/lib/context/AuthContext';
 
 import SettingsMenu from '@/app/components/SettingsMenu';
 import LogoutModal from '@/app/components/modals/LogoutModal';
 import SearchUser from '@/app/components/SearchUser';
 import ChatList from '@/app/components/ChatList'; // BACKEND: Real chat list
+import NotificationBadge from '@/app/components/NotificationBadge';
 
 import type { SidebarMode, SettingsView } from '@/app/chat/layout';
 
@@ -18,6 +21,8 @@ export default function ChatSidebar({
   onBackToChat,
   onChangeSettingsView,
   onSearchUser,
+  sidebarOpen = false,
+  onCloseSidebar,
 }: {
   mode: SidebarMode;
   settingsView: SettingsView;
@@ -25,6 +30,8 @@ export default function ChatSidebar({
   onBackToChat: () => void;
   onChangeSettingsView: (v: SettingsView) => void;
   onSearchUser?: (user: any | null) => void;
+  sidebarOpen?: boolean;
+  onCloseSidebar?: () => void;
 }) {
   const router = useRouter();
   const { user } = useAuth(); // BACKEND: Get real user from auth
@@ -34,6 +41,7 @@ export default function ChatSidebar({
 
   const [width, setWidth] = useState(280);
   const [showLogout, setShowLogout] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -75,24 +83,70 @@ export default function ChatSidebar({
     try {
       await fetch('/api/logout', { method: 'POST' });
     } finally {
-      router.replace('/');
+      router.replace('/logout');
     }
   }
 
   // BACKEND: Get user display info
   const username = user?.displayName || user?.email?.split('@')[0] || 'User';
   const userInitial = username[0]?.toUpperCase() || 'U';
-  const userId = (user as any)?.numId || '000000'; // Assuming numId exists on user
+  const userId = (user as any)?.numericId || '00000000';
+
+  /* ================= FRIEND REQUEST LISTENER ================= */
+  useEffect(() => {
+    if (!user?.uid) {
+      setRequestCount(0);
+      return;
+    }
+
+    let mounted = true;
+
+    // Real-time listener for friend requests
+    const requestsQuery = query(
+      collection(db, 'friend_requests'),
+      where('to', '==', user.uid),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribe = onSnapshot(
+      requestsQuery,
+      (snapshot) => {
+        if (!mounted) return;
+        setRequestCount(snapshot.docs.length);
+      },
+      (error) => {
+        if (!mounted) return;
+        console.error('Failed to listen to friend requests:', error);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [user?.uid]);
 
   return (
     <>
       <aside
         ref={sidebarRef}
         style={{ width }}
-        className="relative flex flex-col h-full bg-[#F8F4E1] border-r border-[#74512D]/20"
+        className={`
+          fixed md:relative
+          top-0 left-0 md:left-auto
+          h-full
+          w-[85%] xs:w-80 md:w-auto
+          flex flex-col
+          bg-[#F8F4E1]
+          border-r border-[#74512D]/20
+          z-50 md:z-auto
+          transition-transform duration-300 md:transition-none
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
       >
         {/* ================= HEADER ================= */}
         <div className="h-14 px-4 flex items-center gap-4 border-b border-[#74512D]/15">
+          {/* Close button for mobile */}
           <img
             src="/logo.png"
             alt="WHISP"
@@ -106,6 +160,7 @@ export default function ChatSidebar({
 
             <IconButton label="Settings" onClick={onOpenSettings}>
               <SettingsIcon />
+              <NotificationBadge count={requestCount} />
             </IconButton>
 
             <IconButton label="Logout" onClick={() => setShowLogout(true)}>
@@ -164,7 +219,7 @@ export default function ChatSidebar({
         {/* ================= RESIZE HANDLE ================= */}
         <div
           onMouseDown={startResize}
-          className="absolute top-0 right-0 h-full w-2 cursor-ew-resize
+          className="hidden md:block absolute top-0 right-0 h-full w-2 cursor-ew-resize
                      bg-transparent hover:bg-black/10"
         />
       </aside>

@@ -7,7 +7,7 @@ import { routes } from "./routes";
 import LiquidEtherBG from "./components/background";
 import AvatarGroup from "./components/avatarGroup";
 import { useAuth } from "@/lib/context/AuthContext";
-import LoadingScreen from "@/app/components/LoadingScreen";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 export default function Home() {
 

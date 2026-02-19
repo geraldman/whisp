@@ -3,18 +3,23 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
+import { useAuth } from "@/lib/context/AuthContext";
 import SettingsMenu from "./SettingsMenu";
 import NotificationBadge from "./NotificationBadge";
+import type { SettingsView } from "@/app/chat/layout";
 
-export default function ProfileSection({ user }: any) {
+export default function ProfileSection() {
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [openSettings, setOpenSettings] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
+  const [settingsView, setSettingsView] = useState<SettingsView>("profile");
 
   useEffect(() => {
     if (!user?.uid) return;
 
     async function fetchProfile() {
+      if (!user?.uid) return; // TypeScript safety check
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists()) {
         setProfile(snap.data());
@@ -88,16 +93,15 @@ export default function ProfileSection({ user }: any) {
 
       {/* USER INFO */}
       <div style={{ marginTop: 8, fontSize: 14, color: "#555" }}>
-        <div>Username: {profile?.username ?? "-"}</div>
-        <div>User ID: {profile?.numericId ?? "-"}</div>
+        <div>Username: {profile?.username || (user as any)?.username || "-"}</div>
+        <div>User ID: {profile?.numericId || (user as any)?.numericId || "00000000"}</div>
       </div>
 
       {/* SETTINGS MENU */}
       {openSettings && (
         <SettingsMenu
-          onRequestHandled={() => {
-            // Real-time listener handles updates automatically
-          }}
+          active={settingsView}
+          onChange={setSettingsView}
         />
       )}
     </div>

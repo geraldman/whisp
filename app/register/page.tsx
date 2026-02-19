@@ -11,7 +11,7 @@ import { routes } from "@/app/routes";
 import { createAccountProcedureSimplified } from "@/lib/crypto";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebase";
-import LoadingScreen from "@/app/components/LoadingScreen";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,31 +37,37 @@ export default function RegisterPage() {
 
       if (!username.trim()) {
         setError("Username is required");
+        setLoading(false);
         return;
       }
 
       if (username.trim().length < 3) {
         setError("Username must be at least 3 characters");
+        setLoading(false);
         return;
       }
 
       if (!email.trim()) {
         setError("Email is required");
+        setLoading(false);
         return;
       }
 
       if (!isValidEmail(email.trim())) {
         setError("Please enter a valid email address");
+        setLoading(false);
         return;
       }
 
       if (!password) {
         setError("Password is required");
+        setLoading(false);
         return;
       }
 
       if (password.length < 6) {
         setError("Password must be at least 6 characters");
+        setLoading(false);
         return;
       }
 

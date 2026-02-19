@@ -20,7 +20,7 @@ export async function decryptGroupKey(
 ) {
   ensureCryptoAvailable();
   const { privateKey } = getRSAKeyPair();
-  const raw = await rsaDecrypt(privateKey, new Uint8Array(encryptedKey));
+  const raw = await rsaDecrypt(privateKey, new Uint8Array(encryptedKey).buffer);
   const aesKey = await crypto.subtle.importKey(
     "raw",
     raw,

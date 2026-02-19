@@ -5,8 +5,14 @@ import ProfileContent from './ProfileContent';
 import RequestsContent from './RequestContent';
 import AboutContent from './AboutContent';
 
-export default function SettingsContent({ view }: { view: SettingsView }) {
-  if (view === 'profile') return <ProfileContent />;
-  if (view === 'requests') return <RequestsContent />;
-  return <AboutContent />;
+export default function SettingsContent({ 
+  view, 
+  onBack 
+}: { 
+  view: SettingsView;
+  onBack: () => void;
+}) {
+  if (view === 'profile') return <ProfileContent onBack={onBack} />;
+  if (view === 'requests') return <RequestsContent onBack={onBack} />;
+  return <AboutContent onBack={onBack} />;
 }

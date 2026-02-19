@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingScreen from "@/app/components/LoadingScreen";
+import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 type Props = {
   loading: boolean;

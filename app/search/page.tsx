@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { searchUserByNumericId } from "@/app/actions/searchUser";
 import { useRequireAuth } from "@/lib/hooks/useRequireAuth";
-import LoadingScreen from "@/app/components/LoadingScreen"
+import LoadingScreen from "@/app/components/LoadingScreenFixed"
 
 export default function SearchUserPage() {
   const { user, loading: authLoading } = useRequireAuth();

@@ -11,8 +11,8 @@ export default function NotificationBadge({ count }: NotificationBadgeProps) {
     <span
       style={{
         position: "absolute",
-        top: -6,
-        right: -6,
+        top: 0,
+        right: 0,
         backgroundColor: "#ff4444",
         color: "white",
         borderRadius: "50%",
