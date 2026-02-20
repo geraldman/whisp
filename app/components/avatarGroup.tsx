@@ -9,7 +9,7 @@ const AVATARS = [
     role: 'Full-Stack Engineer',
   },
   {
-    src: 'https://pbs.twimg.com/profile_images/1593304942210478080/TUYae5z7_400x400.jpg',
+    src: '/avatar/keira.webp',
     name: 'Keira',
     role: 'Frontend Developer',
   },
@@ -19,7 +19,7 @@ const AVATARS = [
     role: 'UI/UX Developer',
   },
   {
-    src: 'https://pbs.twimg.com/profile_images/1783856060249595904/8TfcCN0r_400x400.jpg',
+    src: '/avatar/richie.webp',
     name: 'Richie',
     role: 'Backend Developer',
   },
