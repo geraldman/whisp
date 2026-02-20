@@ -6,9 +6,11 @@ import { useSidebar } from '@/lib/context/SidebarContext';
 export default function SettingsMenu({
   active,
   onChange,
+  requestCount = 0,
 }: {
   active: SettingsView;
   onChange: (v: SettingsView) => void;
+  requestCount?: number;
 }) {
   const { setSidebarOpen } = useSidebar();
 
@@ -41,6 +43,7 @@ export default function SettingsMenu({
         desc="Manage incoming connections"
         active={active === 'requests'}
         onClick={() => handleClick('requests')}
+        badge={requestCount}
       />
 
       <Item
@@ -58,11 +61,13 @@ function Item({
   desc,
   active,
   onClick,
+  badge,
 }: {
   label: string;
   desc: string;
   active: boolean;
   onClick: () => void;
+  badge?: number;
 }) {
   return (
     <button
@@ -76,9 +81,14 @@ function Item({
         }
       `}
     >
-      <p className="text-sm font-medium text-[#543310]">
-        {label}
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-[#543310]">
+          {label}
+        </p>
+        {badge !== undefined && badge > 0 && (
+          <span className="w-2 h-2 rounded-full bg-red-500" />
+        )}
+      </div>
       <p className="text-[11px] text-[#74512D]/70 mt-0.5">
         {desc}
       </p>

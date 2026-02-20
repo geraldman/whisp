@@ -177,13 +177,13 @@ export default function ChatDetailPage() {
             </div>
 
             {/* ================= MESSAGES (BACKEND COMPONENT) ================= */}
-            <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 md:py-6 chat-scroll">
+            <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 md:py-6 pb-24 md:pb-6 chat-scroll">
                 <MessageBox />
             </div>
 
             {/* ================= INPUT (BACKEND COMPONENT - only if not expired) ================= */}
             {!chatExpired && (
-                <div className="px-3 md:px-6 py-3 md:py-4 bg-[#E6D5BC] border-t border-[#74512D]/15">
+                <div className="fixed md:relative bottom-0 left-0 right-0 md:left-auto md:right-auto px-3 md:px-6 py-3 md:py-4 bg-[#E6D5BC] border-t border-[#74512D]/15 z-10">
                     <MessageInput />
                 </div>
             )}

@@ -34,14 +34,14 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="absolute top-6 left-20 z-30 flex items-center gap-2"
+        className="absolute top-4 left-4 sm:top-6 sm:left-8 lg:left-20 z-30 flex items-center gap-2"
       >
         <Image
           src="/logo.png"
           alt="WHISP Logo"
           width={160}
           height={60}
-          className="object-contain"
+          className="object-contain w-28 sm:w-36 lg:w-40 h-auto"
         />
       </motion.div>
 
@@ -50,20 +50,20 @@ export default function Home() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-        className="absolute top-6 right-20 z-30 flex items-center gap-2"
+        className="absolute top-4 right-4 sm:top-6 sm:right-8 lg:right-20 z-30 flex items-center gap-2"
       >
         <AvatarGroup />
       </motion.div>
 
       {/* Content */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4">
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 sm:gap-4 px-6">
 
         {/* Title */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-5xl font-semibold tracking-tight text-[#5C3A21] -mt-10 max-w-xl text-center"
+          className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-[#5C3A21] -mt-4 sm:-mt-8 lg:-mt-10 max-w-xl text-center leading-tight"
         >
           Secure Messaging for Everyday Conversations
         </motion.h1>
@@ -73,7 +73,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
-          className="text-black mt-6 text-center max-w-xl leading-relaxed"
+          className="text-sm sm:text-base text-black mt-3 sm:mt-6 text-center max-w-xl leading-relaxed px-4 sm:px-0"
         >
           Privacy-first messaging app powered by end-to-end encryption,
           so only you and your recipient can read what’s shared.
@@ -85,14 +85,15 @@ export default function Home() {
               hidden: { opacity: 0, y: 20 },
               show: { opacity: 1, y: 0 },
             }}
+            className="mt-8 sm:mt-12 lg:mt-16"
           >
             <Link href={routes.chats}>
               <button
                 className="
                   cursor-pointer
-                  w-40 px-8 py-3 rounded-xl
+                  w-32 sm:w-40 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl
                   bg-[#74512D]
-                  text-white font-medium
+                  text-sm sm:text-base text-white font-medium
                   shadow-md shadow-black/20
                   transition-all duration-300 ease-out
                   hover:-translate-y-1
@@ -117,7 +118,7 @@ export default function Home() {
                 },
               },
             }}
-            className="flex gap-6 mt-16"
+            className="flex gap-4 sm:gap-6 mt-8 sm:mt-12 lg:mt-16"
           >
             {/* Login */}
             <motion.div
@@ -126,13 +127,13 @@ export default function Home() {
                 show: { opacity: 1, y: 0 },
               }}
             >
-              <Link href="/login">
+              <Link href="/auth">
                 <button
                   className="
                     cursor-pointer
-                    w-40 px-8 py-3 rounded-xl
+                    w-32 sm:w-40 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl
                     bg-[#74512D]
-                    text-white font-medium
+                    text-sm sm:text-base text-white font-medium
                     shadow-md shadow-black/20
                     transition-all duration-300 ease-out
                     hover:-translate-y-1
@@ -153,12 +154,12 @@ export default function Home() {
                 show: { opacity: 1, y: 0 },
               }}
             >
-              <Link href="/register">
+              <Link href="/auth">
                 <button
                   className="
                     cursor-pointer
-                    w-40 px-8 py-3 rounded-xl
-                    text-[#74512D]
+                    w-32 sm:w-40 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl
+                    text-sm sm:text-base text-[#74512D]
                     bg-white/70
                     shadow-sm
                     transition-all duration-300 ease-out
@@ -183,7 +184,7 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
-        className="absolute bottom-6 w-full z-30 text-center"
+        className="absolute bottom-4 sm:bottom-6 w-full z-30 text-center px-4"
       >
         <p className="text-xs text-black/40 transition-colors duration-300 hover:text-black/70">
           © 2026 WHISP • All rights reserved.

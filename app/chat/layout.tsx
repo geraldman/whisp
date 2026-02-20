@@ -22,14 +22,13 @@ function ChatLayoutInner({
   const [mode, setMode] = useState<SidebarMode>('chat');
   const [settingsView, setSettingsView] =
     useState<SettingsView>('profile');
+  const [searchedUser, setSearchedUser] =
+    useState<SearchedUser | null>(null);
   const { sidebarOpen, setSidebarOpen } = useSidebar();
 
   if (loading || !user) {
     return <LoadingScreen />;
   }
-
-  const [searchedUser, setSearchedUser] =
-    useState<SearchedUser | null>(null);
 
   return (
     <div className="flex h-screen bg-[#F6F1E3] relative">

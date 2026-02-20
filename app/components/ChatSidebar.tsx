@@ -213,6 +213,7 @@ export default function ChatSidebar({
           <SettingsMenu
             active={settingsView}
             onChange={onChangeSettingsView}
+            requestCount={requestCount}
           />
         )}
 

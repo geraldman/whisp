@@ -305,7 +305,7 @@ function MessageInput() {
     };
 
     return (
-        <div className="px-6 py-4">
+        <div>
             {/* Error Message (BACKEND LOGIC) */}
             {error && (
                 <div className="mb-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">

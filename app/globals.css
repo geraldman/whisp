@@ -77,3 +77,15 @@ body {
 .chat-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(116, 81, 45, 0.55);
 }
+
+/* ================= PAGE TRANSITIONS ================= */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Smooth page transitions */
+  body {
+    transition: opacity 0.15s ease-in-out;
+  }
+}

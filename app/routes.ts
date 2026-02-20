@@ -3,8 +3,9 @@ import chats from "./chat/page";
 
 export const routes = {
   home: '/',
-  login: '/login',
-  register: '/register',
+  auth: '/auth',
+  login: '/auth',
+  register: '/auth',
   logout: 'logout',
   forgotPassword: '/forgot-password',
   chats: '/chat',
