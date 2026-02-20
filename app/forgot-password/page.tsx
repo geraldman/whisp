@@ -15,6 +15,11 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  function onFormSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    handleReset();
+  }
+
   async function handleReset() {
     if (loading) return;
 
@@ -60,10 +65,11 @@ export default function ForgotPasswordPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg"
       >
+        <form onSubmit={onFormSubmit}>
         {/* Back */}
         <button
           onClick={() => router.push(routes.home)}
-          aria-label="Back"
+          aria-label="Back" type="button"
           className="cursor-pointer mb-4 w-9 h-9 rounded-full
                      flex items-center justify-center
                      bg-[#74512D]/10 text-[#74512D]
@@ -144,7 +150,7 @@ export default function ForgotPasswordPage() {
 
         {/* Action Button */}
         <button
-          onClick={handleReset}
+          type="submit"
           disabled={loading || !email}
           className="cursor-pointer mt-6 w-full rounded-xl bg-[#74512D] py-3
                      text-white font-medium
@@ -169,6 +175,7 @@ export default function ForgotPasswordPage() {
             Back to login
           </button>
         </div>
+        </form>
       </motion.div>
 
       {/* Footer */}

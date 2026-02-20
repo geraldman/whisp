@@ -1,6 +1,6 @@
 "use server";
 
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
+import { adminDb } from "../../lib/firebase/firebaseAdmin";
 
 export async function addFriendAndCreateChat(
   currentUid: string,

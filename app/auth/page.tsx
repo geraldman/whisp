@@ -20,6 +20,7 @@ import LoadingScreen from "@/app/components/LoadingScreenFixed";
 type AuthMode = "login" | "register";
 
 function AuthPageContent() {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -235,6 +236,10 @@ function AuthPageContent() {
   }
 
   const handleSubmit = mode === "login" ? handleLogin : handleRegister;
+  function onFormSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    handleSubmit();
+  }
 
   if (authLoading) {
     return <LoadingScreen />;
@@ -271,8 +276,9 @@ function AuthPageContent() {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg mt-4"
           >
+            <form onSubmit={onFormSubmit}>
             {/* Back */}
-            <button
+            <button type="button"
               onClick={() => router.push(routes.home)}
               className="cursor-pointer mb-4 w-9 h-9 rounded-full flex items-center justify-center
                          bg-[#74512D]/10 text-[#74512D]
@@ -329,7 +335,7 @@ function AuthPageContent() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   style={{ left: "0.25rem" }}
                 />
-                <button 
+                <button type="button"
                   onClick={() => {
                     setMode("login");
                     setError("");
@@ -340,7 +346,7 @@ function AuthPageContent() {
                 >
                   Login
                 </button>
-                <button 
+                <button type="button"
                   onClick={() => {
                     setMode("register");
                     setError("");
@@ -434,7 +440,7 @@ function AuthPageContent() {
                 {/* Forgot Password - Only for Login */}
                 {mode === "login" && (
                   <div className="flex justify-end mt-2">
-                    <button
+                    <button type="button"
                       onClick={() => router.push(routes.forgotPassword)}
                       className="cursor-pointer text-[13px] text-[#74512D]/80 hover:text-[#74512D] hover:underline"
                     >
@@ -470,8 +476,7 @@ function AuthPageContent() {
             </AnimatePresence>
 
             {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
+            <button type="submit"
               className="cursor-pointer mt-6 w-full rounded-xl bg-[#74512D] py-3
                          text-white font-medium
                          shadow-md shadow-[#74512D]/30
@@ -480,6 +485,7 @@ function AuthPageContent() {
             >
               {mode === "login" ? "Login" : "Register"}
             </button>
+            </form>
           </motion.div>
 
           {/* Footer */}
