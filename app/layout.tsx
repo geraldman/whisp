@@ -27,13 +27,6 @@ export const metadata: Metadata = {
   creator: "Whispxr",
   publisher: "Whispxr",
   
-  // Icons
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
-  
   // Open Graph metadata for social sharing
   openGraph: {
     type: "website",
@@ -81,7 +74,7 @@ export const metadata: Metadata = {
   
   // Verification tags (add your verification codes)
   verification: {
-    google: "googled2a703461c2a3a8b.html",
+    google: "googled2a703461c2a3a8b",
     // yandex: "your-yandex-verification-code",
     // bing: "your-bing-verification-code",
   },
