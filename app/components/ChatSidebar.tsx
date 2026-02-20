@@ -149,7 +149,7 @@ export default function ChatSidebar({
           {/* Close button for mobile */}
           <img
             src="/logo.png"
-            alt="WHISP"
+            alt="WHISPXR"
             className="h-6 object-contain shrink-0"
           />
 

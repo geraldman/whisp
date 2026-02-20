@@ -1,0 +1,10 @@
+# Robots.txt for Whispxr
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /chat/*/
+Disallow: /setting/
+Disallow: /search/
+
+# Sitemap location
+Sitemap: https://whispxr.vercel.app/sitemap.xml

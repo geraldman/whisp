@@ -42,7 +42,7 @@ export default function LoadingScreen({
         {/* Logo */}
         <Image
           src="/logo.png"
-          alt="WHISP Logo"
+          alt="WHISPXR Logo"
           width={230}
           height={60}
           priority
@@ -94,7 +94,7 @@ export default function LoadingScreen({
       {/* Footer */}
       <footer className="absolute bottom-6 w-full z-30 text-center">
         <p className="text-xs text-black/40 transition-colors duration-300 hover:text-black/70">
-          © 2026 WHISP • All rights reserved.
+          © 2026 WHISPXR • All rights reserved.
         </p>
       </footer>
     </main>

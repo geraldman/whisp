@@ -28,7 +28,7 @@ export default function LogoutModal({
         </h2>
 
         <p className="text-sm text-[#74512D]/80 mb-6">
-          Are you sure you want to log out of WHISP?
+          Are you sure you want to log out of Whispxr?
         </p>
 
         <div className="flex justify-end gap-3">

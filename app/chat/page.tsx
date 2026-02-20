@@ -57,7 +57,7 @@ function ChatPageContent() {
         </button>
         <img
           src="/logo.png"
-          alt="WHISP"
+          alt="WHISPXR"
           className="h-6 object-contain"
         />
       </div>

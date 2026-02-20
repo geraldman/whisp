@@ -256,7 +256,7 @@ function AuthPageContent() {
           >
             <Image
               src="/logo.png"
-              alt="WHISP Logo"
+              alt="WHISPXR Logo"
               width={160}
               height={60}
               className="object-contain w-32 sm:w-36 lg:w-40 h-auto"
@@ -299,7 +299,7 @@ function AuthPageContent() {
                 transition={{ duration: 0.2 }}
                 className="text-xl font-semibold text-[#5C3A21] mb-1 text-center"
               >
-                {mode === "login" ? "Login to Whisp" : "Create your Whisp account"}
+                {mode === "login" ? "Login to Whispxr" : "Create your Whispxr account"}
               </motion.h1>
             </AnimatePresence>
 
@@ -373,7 +373,7 @@ function AuthPageContent() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="whisp_user"
+                      placeholder="whispxr_user"
                       className="w-full rounded-xl bg-white px-4 py-3 text-sm
                                  border border-[#74512D]/20
                                  focus:ring-2 focus:ring-[#74512D]/40 outline-none"
@@ -390,7 +390,7 @@ function AuthPageContent() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="whisp@example.com"
+                    placeholder="whispxr@example.com"
                     className="w-full rounded-xl bg-white px-4 py-3 text-sm
                                border border-[#74512D]/20
                                focus:ring-2 focus:ring-[#74512D]/40 outline-none"
@@ -490,7 +490,7 @@ function AuthPageContent() {
             className="absolute bottom-6 w-full text-center"
           >
             <p className="text-xs text-black/40 hover:text-black/70 transition">
-              © 2026 WHISP • All rights reserved.
+              © 2026 WHISPXR • All rights reserved.
             </p>
           </motion.footer>
         </div>

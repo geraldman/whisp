@@ -1,21 +1,27 @@
 'use client';
 
+import Image from 'next/image';
+
 const AVATARS = [
   {
-    src: 'https://pbs.twimg.com/profile_images/1948770261848756224/oPwqXMD6_400x400.jpg',
+    src: '/avatar/gerald.webp',
     name: 'Gerald',
+    role: 'Full-Stack Engineer',
   },
   {
     src: 'https://pbs.twimg.com/profile_images/1593304942210478080/TUYae5z7_400x400.jpg',
     name: 'Keira',
+    role: 'Frontend Developer',
   },
   {
-    src: 'https://pbs.twimg.com/profile_images/1677042510839857154/Kq4tpySA_400x400.jpg',
+    src: '/avatar/qwyn.webp',
     name: 'Qwyn',
+    role: 'UI/UX Developer',
   },
   {
     src: 'https://pbs.twimg.com/profile_images/1783856060249595904/8TfcCN0r_400x400.jpg',
     name: 'Richie',
+    role: 'Backend Developer',
   },
 ];
 
@@ -56,9 +62,11 @@ export default function AvatarGroup() {
           >
             {/* Avatar Image */}
             <div className="w-full h-full rounded-full overflow-hidden">
-              <img
+              <Image
                 src={avatar.src}
                 alt={avatar.name}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -85,13 +93,15 @@ export default function AvatarGroup() {
                 relative
                 rounded-2xl
                 bg-white
-                px-3 py-1.5
-                text-xs
-                font-small
-                text-black
+                px-3 py-2
                 shadow-lg
               ">
-                {avatar.name}
+                <p className="text-xs font-medium text-black whitespace-nowrap text-center">
+                  {avatar.name}
+                </p>
+                <p className="text-[10px] font-light text-black/60 whitespace-nowrap mt-0.5">
+                  {avatar.role}
+                </p>
 
                 {/* Arrow (pointing UP) */}
                 <div className="

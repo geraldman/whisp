@@ -24,7 +24,7 @@ export default function AboutContent({ onBack }: { onBack: () => void }) {
         transition={{ duration: 0.4 }}
         className="text-xl font-semibold text-[#543310]"
       >
-        About WHISP
+        About WHISPXR
       </motion.h1>
 
       <motion.p
@@ -50,10 +50,10 @@ export default function AboutContent({ onBack }: { onBack: () => void }) {
             Private. Secure. Simple.
           </h2>
           <p className="text-sm text-[#74512D] leading-relaxed">
-            WHISP is a private messaging platform designed to protect your
+            WHISPXR is a private messaging platform designed to protect your
             conversations. Messages are secured with end-to-end encryption,
             ensuring that only you and the intended recipient can read them —
-            not even WHISP.
+            not even WHISPXR.
           </p>
         </motion.div>
 
@@ -114,7 +114,7 @@ export default function AboutContent({ onBack }: { onBack: () => void }) {
         {/* FOOTER (CONTENT BOTTOM) */}
         <div className="pt-10 pb-4 text-center">
           <p className="text-xs text-[#74512D]/60 hover:text-[#74512D] transition">
-            © 2026 WHISP • All rights reserved.
+            © 2026 WHISPXR • All rights reserved.
           </p>
         </div>
 

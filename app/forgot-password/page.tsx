@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       >
         <Image
           src="/logo.png"
-          alt="WHISP Logo"
+          alt="WHISPXR Logo"
           width={160}
           height={60}
           className="object-contain w-32 sm:w-36 lg:w-40 h-auto"
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
 
           <input
             type="email"
-            placeholder="whisp@example.com"
+            placeholder="whispxr@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl bg-white px-4 py-3 text-sm
@@ -179,7 +179,7 @@ export default function ForgotPasswordPage() {
         className="absolute bottom-6 w-full text-center"
       >
         <p className="text-xs text-black/40 hover:text-black/70 transition">
-          © 2026 WHISP • All rights reserved.
+          © 2026 WHISPXR • All rights reserved.
         </p>
       </motion.footer>
     </div>

@@ -38,7 +38,7 @@ export default function Home() {
       >
         <Image
           src="/logo.png"
-          alt="WHISP Logo"
+          alt="WHISPXR Logo"
           width={160}
           height={60}
           className="object-contain w-28 sm:w-36 lg:w-40 h-auto"
@@ -76,7 +76,7 @@ export default function Home() {
           className="text-sm sm:text-base text-black mt-3 sm:mt-6 text-center max-w-xl leading-relaxed px-4 sm:px-0"
         >
           Privacy-first messaging app powered by end-to-end encryption,
-          so only you and your recipient can read what’s shared.
+          so only you and your recipient can read what's shared.
         </motion.p>
 
         {user ? (
@@ -187,7 +187,7 @@ export default function Home() {
         className="absolute bottom-4 sm:bottom-6 w-full z-30 text-center px-4"
       >
         <p className="text-xs text-black/40 transition-colors duration-300 hover:text-black/70">
-          © 2026 WHISP • All rights reserved.
+          © 2026 WHISPXR • All rights reserved.
         </p>
       </motion.footer>
 
