@@ -43,8 +43,11 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
                    flex flex-col"
       >
         {/* HEADER */}
-        <div className="px-4 md:px-5 h-14 flex items-center justify-between
-                        border-b border-[#74512D]/10">
+        <div className="fixed md:relative top-0 left-0 right-0 md:left-auto md:right-auto
+                        px-4 md:px-5 h-14 flex items-center justify-between
+                        bg-[#F6F1E3]
+                        border-b border-[#74512D]/10
+                        z-10">
           <button
             onClick={onClose}
             className="md:hidden cursor-pointer w-9 h-9 flex items-center justify-center
@@ -69,7 +72,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-5 py-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-5 py-6 pt-20 md:pt-6">
           {/* PROFILE */}
           <div className="flex flex-col items-center text-center mb-8">
             <div
