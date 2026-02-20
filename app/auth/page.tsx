@@ -250,8 +250,7 @@ function AuthPageContent() {
       {loading && <LoadingScreen />}
 
       {!loading && (
-        <div className="min-h-screen flex items-center justify-center bg-[#F8F4E1] px-4 py-20 sm:py-24 relative overflow-y-auto">
-
+        <div className="w-full min-h-[100dvh] flex flex-col bg-[#F8F4E1] px-4 relative">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -12 }}
@@ -264,17 +263,18 @@ function AuthPageContent() {
               alt="WHISPXR Logo"
               width={160}
               height={60}
-              className="object-contain w-32 sm:w-36 lg:w-40 h-auto"
+              className="object-contain w-28 sm:w-36 lg:w-40 h-auto"
               priority
             />
           </motion.div>
 
+          <div className="flex-1 flex flex-col justify-start sm:justify-center items-center pt-16 pb-10 sm:py-10">
           {/* Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg mt-4"
+            className="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg mt-6 sm:mt-4"
           >
             <form onSubmit={onFormSubmit}>
             {/* Back */}
@@ -476,7 +476,7 @@ function AuthPageContent() {
             </AnimatePresence>
 
             {/* Submit Button */}
-            <button type="submit"
+            <button type="submit" disabled={loading}
               className="cursor-pointer mt-6 w-full rounded-xl bg-[#74512D] py-3
                          text-white font-medium
                          shadow-md shadow-[#74512D]/30
@@ -487,13 +487,14 @@ function AuthPageContent() {
             </button>
             </form>
           </motion.div>
+          </div>
 
           {/* Footer */}
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            className="absolute bottom-6 w-full text-center"
+            className="w-full text-center pb-6"
           >
             <p className="text-xs text-black/40 hover:text-black/70 transition">
               © 2026 WHISPXR • All rights reserved.

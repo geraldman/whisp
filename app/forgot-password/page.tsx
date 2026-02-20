@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F4E1] px-4 relative overflow-hidden">
+    <div className="w-full min-h-[100dvh] flex flex-col bg-[#F8F4E1] px-4 relative">
 
       {/* Logo */}
       <motion.div
@@ -58,6 +58,7 @@ export default function ForgotPasswordPage() {
         />
       </motion.div>
 
+      <div className="flex-1 flex items-center justify-center py-10">
       {/* Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -151,7 +152,7 @@ export default function ForgotPasswordPage() {
         {/* Action Button */}
         <button
           type="submit"
-          disabled={loading || !email}
+          disabled={loading || !email.trim()}
           className="cursor-pointer mt-6 w-full rounded-xl bg-[#74512D] py-3
                      text-white font-medium
                      shadow-md shadow-[#74512D]/30
@@ -177,13 +178,14 @@ export default function ForgotPasswordPage() {
         </div>
         </form>
       </motion.div>
+      </div>
 
       {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="absolute bottom-6 w-full text-center"
+        className="w-full text-center pb-6"
       >
         <p className="text-xs text-black/40 hover:text-black/70 transition">
           © 2026 WHISPXR • All rights reserved.
