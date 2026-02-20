@@ -9,7 +9,7 @@ import AvatarGroup from "./components/avatarGroup";
 
 export default function Home() {
   return (
-    <main className="w-screen h-screen overflow-hidden relative">
+    <main className="w-full min-h-[100dvh] overflow-hidden relative px-4 sm:px-6 lg:px-8">
 
       {/* Background */}
       <div className="absolute inset-0 bg-[#F8F4E1] z-10 pointer-events-none">
@@ -25,7 +25,7 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="absolute top-6 left-20 z-30 flex items-center gap-2"
+        className="absolute top-4 left-4 sm:left-6 top-5 lg:left-20 z-30 flex items-center gap-2"
       >
         <Image
           src="/logo.png"
@@ -70,34 +70,21 @@ export default function Home() {
           so only you and your recipient can read what’s shared.
         </motion.p>
 
-        {/* Buttons */}
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={{
-            hidden: {},
-            show: {
-              transition: {
-                staggerChildren: 0.15,
-              },
-            },
-          }}
-          className="flex gap-6 mt-16"
-        >
-          {/* Login */}
+        {user ? (
           <motion.div
             variants={{
               hidden: { opacity: 0, y: 20 },
               show: { opacity: 1, y: 0 },
             }}
+            className="mt-8 sm:mt-12 lg:mt-16"
           >
-            <Link href="/login">
+            <Link href={routes.chats}>
               <button
                 className="
                   cursor-pointer
-                  w-40 px-8 py-3 rounded-xl
+                  w-32 sm:w-40 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl
                   bg-[#74512D]
-                  text-white font-medium
+                  text-sm sm:text-base text-white font-medium
                   shadow-md shadow-black/20
                   transition-all duration-300 ease-out
                   hover:-translate-y-1
@@ -106,40 +93,83 @@ export default function Home() {
                   active:scale-95
                 "
               >
-                Login
+                Open Chat
               </button>
             </Link>
           </motion.div>
-
-          {/* Register */}
+        ) : (
           <motion.div
+            initial="hidden"
+            animate="show"
             variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: { opacity: 1, y: 0 },
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.15,
+                },
+              },
             }}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 mt-10 sm:mt-16 w-full sm:w-auto"
           >
-            <Link href="/register">
-              <button
-                className="
-                  cursor-pointer
-                  w-40 px-8 py-3 rounded-xl
-                  text-[#74512D]
-                  bg-white/70
-                  shadow-sm
-                  transition-all duration-300 ease-out
-                  hover:-translate-y-1
-                  hover:bg-[#74512D]
-                  hover:text-white
-                  hover:shadow-lg
-                  hover:shadow-[#74512D]/40
-                  active:scale-95
-                "
-              >
-                Register
-              </button>
-            </Link>
+            {/* Login */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 },
+              }}
+            >
+              <Link href="/auth">
+                <button
+                  className="
+                    cursor-pointer
+                    w-full sm:w-44 lg:w-48
+                    min-h-[52px] px-6 rounded-xl
+                    bg-[#74512D]
+                    text-base sm:text-sm text-white font-medium
+                    shadow-md shadow-black/20
+                    transition-all duration-300 ease-out
+                    hover:-translate-y-1
+                    hover:shadow-lg
+                    hover:shadow-[#74512D]/40
+                    active:scale-95
+                  "
+                >
+                  Login
+                </button>
+              </Link>
+            </motion.div>
+
+            {/* Register */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 },
+              }}
+            >
+              <Link href="/auth">
+                <button
+                  className="
+                    cursor-pointer
+                    w-full sm:w-44 lg:w-48
+                    min-h-[52px] px-6 rounded-xl
+                    text-base sm:text-sm text-[#74512D] font-medium
+                    bg-white/70
+                    shadow-sm
+                    transition-all duration-300 ease-out
+                    hover:-translate-y-1
+                    hover:bg-[#74512D]
+                    hover:text-white
+                    hover:shadow-lg
+                    hover:shadow-[#74512D]/40
+                    active:scale-95
+                  "
+                >
+                  Register
+                </button>
+              </Link>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </div>
 
       {/* Footer */}

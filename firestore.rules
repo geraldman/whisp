@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* =========================
+       HELPER FUNCTIONS
+       ========================= */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isChatParticipant(chatId) {
+      return request.auth.uid in
+        get(/databases/$(database)/documents/chats/$(chatId))
+          .data.participants;
+    }
+
+    function chatDoc(chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)).data;
+    }
+
+    function messageCount(chatId) {
+      return count(
+        /databases/$(database)/documents/chats/$(chatId)/messages
+      );
+    }
+
+    /* =========================
+       USERS COLLECTION
+       ========================= */
+    match /users/{userId} {
+      allow read: if isSignedIn();
+
+      allow create, update, delete: if isSignedIn()
+        && request.auth.uid == userId;
+    }
+
+    /* =========================
+       USER NUMERIC INDEX
+       ========================= */
+    match /user_numeric_index/{numericId} {
+      allow read, create: if isSignedIn();
+    }
+
+    /* =========================
+       FRIEND REQUESTS
+       ========================= */
+    match /friend_requests/{requestId} {
+
+      // Create friend request (only sender, no chatId required)
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.from
+        && request.resource.data.status == "pending";
+
+      // Read if sender or receiver
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid == resource.data.from ||
+          request.auth.uid == resource.data.to
+        );
+
+      // Accept request (only receiver) - server will add chatId
+      allow update: if isSignedIn()
+        && request.auth.uid == resource.data.to
+        && resource.data.status == "pending"
+        && request.resource.data.status == "accepted";
+
+      // No delete
+      allow delete: if false;
+    }
+
+    /* =========================
+       CHATS COLLECTION
+       ========================= */
+    match /chats/{chatId} {
+
+      // Only participants can read
+      allow read: if isSignedIn()
+        && request.auth.uid in resource.data.participants;
+
+      // Only participants can create chat (server-side on accept)
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.participants;
+
+      // Update chat (e.g. lastMessage, typing indicators)
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participants;
+
+      /* =========================
+         MESSAGES SUBCOLLECTION
+         ========================= */
+      match /messages/{messageId} {
+
+        // Read messages only for participants
+        allow read: if isSignedIn() && isChatParticipant(chatId);
+
+        // CREATE MESSAGE
+        allow create: if isSignedIn()
+          && isChatParticipant(chatId)
+          && request.resource.data.senderId == request.auth.uid
+          && (
+            // ✅ Friend chat → unlimited
+            chatDoc(chatId).isFriendChat == true
+
+            // ❌ Not friend yet → maxMessages enforced
+            || (
+              chatDoc(chatId).isFriendChat == false
+              && messageCount(chatId) < chatDoc(chatId).maxMessages
+            )
+          );
+
+        // Messages immutable
+        allow update, delete: if false;
+      }
+
+      /* =========================
+         SESSIONS SUBCOLLECTION
+         ========================= */
+      match /sessions/{sessionId} {
+
+        // Only chat participants can read sessions
+        allow read: if isSignedIn() && isChatParticipant(chatId);
+
+        // Only chat participants can create/update sessions
+        allow create, update: if isSignedIn() && isChatParticipant(chatId);
+
+        // Sessions can be deleted by participants (for cleanup)
+        allow delete: if isSignedIn() && isChatParticipant(chatId);
+      }
+    }
+
+    /* =========================
+       DEFAULT DENY
+       ========================= */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
