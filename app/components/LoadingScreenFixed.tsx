@@ -149,7 +149,7 @@ export default function LoadingScreen() {
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2.4, repeat: Infinity }}
         >
-          Loading your messages...
+          Loading...
         </motion.p>
 
         <p className="mt-1 text-xs text-black/40">

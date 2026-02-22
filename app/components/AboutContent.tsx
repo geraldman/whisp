@@ -9,11 +9,25 @@ export default function AboutContent({ onBack }: { onBack: () => void }) {
 
       {/* Back Button - Mobile Only */}
       <button
+        type="button"
         onClick={onBack}
-        className="md:hidden mb-6 flex items-center gap-2 text-[#74512D] hover:text-[#543310] transition"
+        className="md:hidden cursor-pointer mb-4 w-9 h-9 rounded-full flex items-center justify-center
+              bg-[#74512D]/10 text-[#74512D]
+              hover:bg-[#74512D]/20 active:scale-95 transition"
+        aria-label="Back"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            d="M15 18l-6-6 6-6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 

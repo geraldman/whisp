@@ -133,8 +133,7 @@ export default function ChatSidebar({
         className={`
           fixed md:relative
           top-0 left-0 md:left-auto
-          h-full
-          w-[85%] xs:w-80
+          min-h-[100dvh]
           flex flex-col
           bg-[#F8F4E1]
           border-r border-[#74512D]/20
@@ -205,7 +204,7 @@ export default function ChatSidebar({
             />
 
             {/* CHAT LIST (BACKEND: Real chat list with Firebase data) */}
-            <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4">
+            <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4 bg-[#F8F4E1]">
               {user?.uid && <ChatList uid={user.uid} />}
             </div>
           </>

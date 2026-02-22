@@ -46,14 +46,36 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F6F1E3] px-8 py-10">
+    <div
+  className="
+    flex-1 min-h-0 overflow-y-auto
+    bg-[#F6F1E3]
+    px-4 sm:px-6 md:px-8
+    py-6 sm:py-8 md:py-10
+    pb-32 md:pb-10
+  "
+>
       {/* Back Button - Mobile Only */}
       <button
+        type="button"
         onClick={onBack}
-        className="md:hidden mb-6 flex items-center gap-2 text-[#74512D] hover:text-[#543310] transition"
+        className="md:hidden cursor-pointer mb-4 w-9 h-9 rounded-full flex items-center justify-center
+              bg-[#74512D]/10 text-[#74512D]
+              hover:bg-[#74512D]/20 active:scale-95 transition"
+        aria-label="Back"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            d="M15 18l-6-6 6-6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 
@@ -61,15 +83,23 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
 
         {/* AVATAR */}
         <div className="relative flex justify-center z-10">
-          <div className="w-28 h-28 rounded-full bg-white border border-[#74512D]/25 flex items-center justify-center shadow-sm">
-            <span className="text-4xl font-semibold text-[#543310]">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28
+                          rounded-full bg-white border border-[#74512D]/25
+                          flex items-center justify-center shadow-sm">
+            <span className="text-2xl sm:text-3xl md:text-4xl font-semibold text-[#543310]">
               {(user?.displayName?.[0] || user?.email?.[0] || 'U').toUpperCase()}
             </span>
           </div>
         </div>
 
         {/* CARD */}
-        <div className="relative mt-[-40px] pt-16 px-8 pb-8 rounded-3xl bg-[#EFE6D8] shadow-[0_14px_32px_rgba(0,0,0,0.1)]">
+        <div className="relative mt-[-32px] sm:mt-[-36px] md:mt-[-40px]
+                pt-12 sm:pt-14 md:pt-16
+                px-4 sm:px-6 md:px-8
+                pb-6 sm:pb-7 md:pb-8
+                rounded-2xl sm:rounded-3xl
+                bg-[#EFE6D8]
+                shadow-[0_14px_32px_rgba(0,0,0,0.1)]">
 
           <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-24 h-12 bg-[#F6F1E3] rounded-b-full" />
 
