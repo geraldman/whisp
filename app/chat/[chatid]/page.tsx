@@ -13,6 +13,7 @@ import { useChatContext } from "@/lib/context/ChatContext";
 import { useSidebar } from "@/lib/context/SidebarContext";
 import { CHAT_INACTIVITY_TIMEOUT } from "@/lib/config/chatConfig";
 import LoadingScreen from "@/app/components/LoadingScreenFixed";
+import { useRouter } from "next/navigation";
 
 export default function ChatDetailPage() {
     const params = useParams();
@@ -25,6 +26,7 @@ export default function ChatDetailPage() {
     const [chatExpired, setChatExpired] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [showProfile, setShowProfile] = useState(false);
+    const router = useRouter();
 
     if (loading || !user) {
         return <LoadingScreen />;
@@ -34,6 +36,14 @@ export default function ChatDetailPage() {
     const chatMetadata = getChatMetadata(chatId);
     const otherUsername = chatMetadata?.username || "Loading...";
     const otherUserInitial = chatMetadata?.userInitial || "?";
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768);
+        check();
+        window.addEventListener("resize", check);
+        return () => window.removeEventListener("resize", check);
+    }, []);
 
     // Real-time countdown monitoring (BACKEND LOGIC)
     useEffect(() => {
@@ -116,7 +126,7 @@ export default function ChatDetailPage() {
     };
 
     return (
-        <div className="relative flex flex-col h-full bg-[#EFE6D8]">
+        <div className="relative flex flex-col h-full bg-[#F6F1E3]">
             {/* ================= CHAT HEADER (FRONTEND STYLING) ================= */}
             <div
                 className="h-14 px-3 md:px-6 flex items-center justify-between
@@ -125,12 +135,25 @@ export default function ChatDetailPage() {
             >
                 {/* Mobile Menu Button */}
                 <button
-                    onClick={toggleSidebar}
-                    className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg
-                               text-[#74512D] hover:bg-[#D4C4A8] transition mr-2"
+                    onClick={() => {
+                        if (window.history.length > 1) {
+                             router.back();
+                        } else {
+                            router.push("/chat");
+                        }
+                    }}
+                    className="
+                        md:hidden
+                        w-9 h-9 flex items-center justify-center rounded-full
+                        bg-[#74512D]/10 text-[#74512D]
+                        hover:bg-[#74512D]/20
+                        active:scale-95
+                        transition mr-2
+                    "
+                    aria-label="Back"
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
                     </svg>
                 </button>
 
@@ -177,16 +200,33 @@ export default function ChatDetailPage() {
             </div>
 
             {/* ================= MESSAGES (BACKEND COMPONENT) ================= */}
-            <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 md:py-6 pb-24 md:pb-6 chat-scroll">
-                <MessageBox />
-            </div>
+            <div className="flex-1 overflow-y-auto chat-scroll px-3 md:px-6 py-4 md:py-6 pb-32 md:pb-28">
+  <MessageBox />
+</div>
 
             {/* ================= INPUT (BACKEND COMPONENT - only if not expired) ================= */}
             {!chatExpired && (
-                <div className="fixed md:relative bottom-0 left-0 right-0 md:left-auto md:right-auto px-3 md:px-6 py-3 md:py-4 bg-[#E6D5BC] border-t border-[#74512D]/15 z-10">
-                    <MessageInput />
-                </div>
-            )}
+  <div className="
+    fixed md:absolute
+    bottom-4
+    left-0 right-0
+    md:left-0 md:right-0
+    w-full
+    px-3 md:px-6
+    z-40
+  ">
+    <div className="
+      w-full
+      rounded-2xl
+      bg-white/90 backdrop-blur-xl
+      border border-[#74512D]/15
+      shadow-[0_20px_40px_rgba(0,0,0,0.18)]
+      px-2 py-2
+    ">
+      <MessageInput />
+    </div>
+  </div>
+)}
 
             {/* ================= CONTACT INFO SHEET (FRONTEND FEATURE) ================= */}
             <AnimatePresence>

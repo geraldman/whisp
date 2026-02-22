@@ -15,6 +15,7 @@ import LogoutModal from '@/app/components/modals/LogoutModal';
 import SettingsMenu from '@/app/components/SettingsMenu';
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
+import { usePathname } from "next/navigation";
 
 export type SidebarMode = 'chat' | 'settings';
 export type SettingsView = 'profile' | 'requests' | 'about';
@@ -55,6 +56,11 @@ function ChatLayoutInner({
     if (loading || !user) {
     return <LoadingScreen />;
   }
+
+  const pathname = usePathname();
+
+  const isChatRoom =
+    pathname.startsWith("/chat/") && pathname !== "/chat";
 
   return (
   <div className="min-h-[100dvh] bg-[#F6F1E3] relative">
@@ -117,7 +123,7 @@ function ChatLayoutInner({
       </div>
 
       {/* Search only in chat mode */}
-      {mode === 'chat' && (
+      {mode === 'chat' && !isChatRoom && (
         <SearchUser onSearchResult={setSearchedUser} />
       )}
 
@@ -150,12 +156,14 @@ function ChatLayoutInner({
       </div>
 
       {/* MOBILE NAV */}
+      {!isChatRoom && (
       <MobileBottomNav
         mode={mode}
         onMessages={() => setMode('chat')}
         onSettings={() => setMode('settings')}
         requestCount={requestCount}
       />
+      )}
     </div>
     
     <LogoutModal
@@ -166,6 +174,7 @@ function ChatLayoutInner({
       window.location.href = '/logout';
       }}
     />
+    
   </div>
 );
 }
