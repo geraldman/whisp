@@ -17,6 +17,11 @@ export default function Home() {
     return <LoadingScreen />;
   }
 
+  if (process.env.NODE_ENV === "development") {
+    console.log("HOME user:", user);
+    console.log("HOME loading:", loading);
+  }
+
   return (
     <main className="w-full min-h-[100dvh] overflow-hidden relative px-4 sm:px-6 lg:px-8">
 

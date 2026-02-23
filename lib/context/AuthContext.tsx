@@ -6,7 +6,6 @@ import { auth, db } from "@/lib/firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useUserPresence } from "@/lib/hooks/useUserPresence";
 
-// Extended user type with Firestore custom fields
 interface ExtendedUser extends User {
   numericId?: string;
   username?: string;
@@ -28,101 +27,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Track user presence (online/offline)
-  useUserPresence(user?.uid || null);
+  // ✅ presence hanya aktif kalau user BENAR2 ADA
+  useUserPresence(user ? user.uid : null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    // Step 1: Check IndexedDB first for faster initial auth state
-    async function checkIndexedDB() {
-      try {
-        const { getDB } = await import("@/lib/db/indexeddb");
-        const db = await getDB();
-        const hasKeys = await db.get("keys", "userPrivateKey");
-        
-        if (hasKeys && isMounted) {
-          console.log("AuthContext: Found keys in IndexedDB, user likely logged in");
-          // Don't set loading to false yet, wait for Firebase confirmation
-        }
-      } catch (error) {
-        console.error("AuthContext: Failed to check IndexedDB:", error);
-      }
-    }
-
-    checkIndexedDB();
-
-    // Step 2: Set up Firebase auth listener (source of truth)
-    console.log("AuthContext: Setting up auth listener");
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("AuthContext: Auth state changed, user:", firebaseUser?.uid || "null");
-      
-      if (!isMounted) return;
+      console.log(
+        "AuthContext state:",
+        firebaseUser?.uid ?? "null"
+      );
 
       if (firebaseUser) {
-        // User is logged in via Firebase
-        // Set user immediately (non-blocking)
         setUser(firebaseUser as ExtendedUser);
-        setLoading(false);
 
-        // Fetch Firestore user data in background (non-blocking)
-        (async () => {
-          try {
-            const userDocRef = doc(db, "users", firebaseUser.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (userDoc.exists() && isMounted) {
-              const userData = userDoc.data();
-              // Merge Firebase Auth user with Firestore data
-              const extendedUser: ExtendedUser = {
-                ...firebaseUser,
-                numericId: userData.numericId,
-                username: userData.username,
-              };
-              setUser(extendedUser);
-              console.log("AuthContext: Fetched numericId:", userData.numericId);
-            }
-          } catch (error) {
-            console.error("AuthContext: Failed to fetch user data from Firestore:", error);
-          }
-        })();
-
-        // Clean up inactive chats on login (non-blocking)
-        (async () => {
-          try {
-            const { cleanupInactiveChats } = await import("@/app/actions/cleanupInactiveChats");
-            const result = await cleanupInactiveChats(firebaseUser.uid);
-            if (result.deletedCount && result.deletedCount > 0) {
-              console.log(`AuthContext: Cleaned up ${result.deletedCount} inactive chat(s)`);
-            }
-          } catch (error) {
-            console.error("AuthContext: Failed to cleanup inactive chats:", error);
-          }
-        })();
-      } else {
-        // User is NOT logged in via Firebase - completely delete IndexedDB
-        console.log("AuthContext: No Firebase user, deleting IndexedDB");
         try {
-          const { deleteDB } = await import("@/lib/db/indexeddb");
-          await deleteDB();
-        } catch (error) {
-          console.error("AuthContext: Failed to delete IndexedDB:", error);
+          const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            setUser({
+              ...firebaseUser,
+              numericId: data.numericId,
+              username: data.username,
+            });
+          }
+        } catch (e) {
+          console.error("Firestore fetch failed", e);
         }
+      } else {
         setUser(null);
-        setLoading(false);
       }
+
+      setLoading(false);
     });
 
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
 
-  console.log("AuthContext: Rendering with user:", user?.uid || "null", "loading:", loading);
-
   return (
-    <AuthContext.Provider value={{ user, uid: user?.uid || null, loading }}>
+    <AuthContext.Provider
+      value={{ user, uid: user?.uid || null, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

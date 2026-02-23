@@ -292,8 +292,8 @@ export default function ChatList({ uid }: ChatListProps) {
 
   if (chats.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="text-sm text-[#8A7F73] text-center">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+        <div className="text-sm text-[#8A7F73]">
           No chats yet. Search for a user to start chatting!
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function ChatList({ uid }: ChatListProps) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-2 pb-4">
+    <div className="flex flex-col gap-2 px-3 py-5">
       {chats.map((chat) => {
         const otherUsername = usernames[chat.otherParticipantId] || "Loading...";
         const isActive = currentChatId === chat.id;

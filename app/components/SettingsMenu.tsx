@@ -8,7 +8,7 @@ export default function SettingsMenu({
   onChange,
   requestCount = 0,
 }: {
-  active: SettingsView;
+  active: SettingsView | null;
   onChange: (v: SettingsView) => void;
   requestCount?: number;
 }) {

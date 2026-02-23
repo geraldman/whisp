@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { routes } from "@/app/routes";
 import {
   motion,
   useMotionValue,
@@ -9,8 +7,6 @@ import {
   animate,
 } from "framer-motion";
 import { useEffect } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/firebase";
 
 const letters = ["W", "H", "I", "S", "P", "X", "R"];
 
@@ -21,24 +17,13 @@ const STEP = BOX + GAP;
 const HALF_BOX = BOX / 2;
 const START_OFFSET = STEP * 1.3;
 
-export default function LoadingScreen() {
-  const router = useRouter();
+type LoadingScreenProps = {
+  mode?: "auth" | "logout";
+};
+
+export default function LoadingScreen({ mode = "auth" }: LoadingScreenProps) {
   const sweepX = useMotionValue(-START_OFFSET);
-
-  /* ================= LOGOUT ================= */
-  async function handleLogout() {
-    try {
-      await signOut(auth);
-
-      // optional cleanup jika kamu punya key custom
-      localStorage.removeItem("authToken");
-      sessionStorage.removeItem("authToken");
-
-      router.replace(routes.home);
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  }
+  const isLogout = mode === "logout";
 
   /* ================= SWEEP MOTION ================= */
   useEffect(() => {
@@ -149,33 +134,12 @@ export default function LoadingScreen() {
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2.4, repeat: Infinity }}
         >
-          Loading...
+          {isLogout ? "Logging out..." : "Loading..."}
         </motion.p>
 
         <p className="mt-1 text-xs text-black/40">
           End-to-end encryption
         </p>
-
-        {/* ================= LOGOUT ================= */}
-        <button
-          onClick={handleLogout}
-          className="
-            cursor-pointer
-            mt-10
-            px-10 py-2.5
-            rounded-full
-            text-sm font-medium
-            text-[#6B553C]
-            bg-[#6B553C]/10
-            border border-[#6B553C]/25
-            transition-all duration-200 ease-out
-            hover:bg-[#6B553C]/15
-            hover:scale-[1.02]
-            active:scale-[0.98]
-          "
-        >
-          Log out
-        </button>
       </div>
 
       {/* ================= FOOTER ================= */}

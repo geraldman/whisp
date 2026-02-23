@@ -57,7 +57,7 @@ function ChatPageContent() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="w-full min-h-[100svh] flex flex-col bg-[#F6F1E3] pb-safe md:pb-0">
+    <div className="w-full h-[100dvh] flex flex-col bg-[#F6F1E3] overflow-hidden">
       <div className="flex-1 flex flex-col relative">
 
         {/* background blobs */}
@@ -66,13 +66,10 @@ function ChatPageContent() {
 
         {/* ================= MOBILE ================= */}
         {isMobile ? (
-          <div className="flex-1 overflow-y-auto">
-
-            {/* breathing space */}
-            <div className="h-3" />
+          <div className="flex-1 overflow-y-auto overscroll-contain">
 
             {/* chat list */}
-            <div className="px-3 pb-28">
+            <div className="px-3 pb-6 md:pb-28">
               {user.uid && <ChatList uid={user.uid} />}
             </div>
 

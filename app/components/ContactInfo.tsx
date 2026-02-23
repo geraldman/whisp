@@ -19,7 +19,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
   const userId = (user as any)?.numericId || '00000000';
 
   return (
-    <div className="absolute inset-0 z-50">
+    <div className="fixed inset-0 z-[999]">
       {/* OVERLAY */}
       <motion.div
         initial={{ opacity: 0 }}

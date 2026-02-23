@@ -15,13 +15,13 @@ export default function LogoutModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center
-                    bg-black/30 backdrop-blur-sm">
+                    bg-black/30 backdrop-blur-sm px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-sm rounded-2xl
-                   bg-[#F6F1E3] p-6 shadow-xl"
+        className="w-full max-w-sm rounded-2xl md:rounded-2xl
+                   bg-[#F6F1E3] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.25)]"
       >
         <h2 className="text-lg font-semibold text-[#543310] mb-2">
           Log out?
@@ -34,18 +34,33 @@ export default function LogoutModal({
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="cursor-pointer px-4 py-2 rounded-full text-sm
-                       text-[#74512D]
-                       hover:bg-[#AF8F6F]/20 transition"
+            className="
+              cursor-pointer
+              flex-1
+              px-4 py-2.5
+              rounded-full text-sm
+              text-[#74512D]
+              bg-[#AF8F6F]/10
+              hover:bg-[#AF8F6F]/20
+              active:scale-[0.98]
+              transition
+            "
           >
             Cancel
           </button>
 
           <button
             onClick={onConfirm}
-            className="cursor-pointer px-5 py-2 rounded-full text-sm font-medium
-                       bg-[#74512D] text-white
-                       hover:bg-[#5f3f22] transition"
+           className="
+              cursor-pointer
+              flex-1
+              px-4 py-2.5
+              rounded-full text-sm font-medium
+              bg-[#74512D] text-white
+              hover:bg-[#5f3f22]
+              active:scale-[0.98]
+              transition
+            "
           >
             Log out
           </button>

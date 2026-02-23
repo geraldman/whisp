@@ -34,6 +34,9 @@ function ChatLayoutInner({
   const [showLogout, setShowLogout] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
   const { sidebarOpen, setSidebarOpen } = useSidebar();
+  const pathname = usePathname();
+  const isChatRoom =
+    pathname?.startsWith("/chat/") && pathname !== "/chat";
   const [mobileSettingsView, setMobileSettingsView] =
     useState<SettingsView | null>(null);
   
@@ -56,11 +59,6 @@ function ChatLayoutInner({
     if (loading || !user) {
     return <LoadingScreen />;
   }
-
-  const pathname = usePathname();
-
-  const isChatRoom =
-    pathname.startsWith("/chat/") && pathname !== "/chat";
 
   return (
   <div className="min-h-[100dvh] bg-[#F6F1E3] relative">
@@ -104,6 +102,7 @@ function ChatLayoutInner({
     <div className="md:hidden h-full flex flex-col">
 
     {/* MOBILE STICKY HEADER */}
+    {!isChatRoom && (
     <div className="md:hidden sticky top-0 z-40 bg-[#F8F4E1] border-b border-[#74512D]/15">
     <div className="px-4 pt-3 pb-3 flex flex-col gap-3">
 
@@ -129,6 +128,7 @@ function ChatLayoutInner({
 
     </div>
     </div>
+    )}
 
       {/* MOBILE BODY */}
       <div className="flex-1 overflow-hidden">
@@ -140,7 +140,7 @@ function ChatLayoutInner({
           />
         ) : (
           <SettingsMenu
-            active={settingsView}
+            active={mobileSettingsView}
             onChange={(v) => setMobileSettingsView(v)}
             requestCount={requestCount}
           />

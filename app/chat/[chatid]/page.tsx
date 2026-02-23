@@ -28,8 +28,13 @@ export default function ChatDetailPage() {
     const [showProfile, setShowProfile] = useState(false);
     const router = useRouter();
 
-    if (loading || !user) {
+    if (loading) {
         return <LoadingScreen />;
+    }
+
+    if (!user) {
+        router.replace("/"); // atau routes.home
+        return <LoadingScreen mode="logout" />;
     }
 
     // Get chat metadata from context
@@ -143,7 +148,7 @@ export default function ChatDetailPage() {
                         }
                     }}
                     className="
-                        md:hidden
+                        cursor-pointer md:hidden
                         w-9 h-9 flex items-center justify-center rounded-full
                         bg-[#74512D]/10 text-[#74512D]
                         hover:bg-[#74512D]/20
@@ -206,27 +211,27 @@ export default function ChatDetailPage() {
 
             {/* ================= INPUT (BACKEND COMPONENT - only if not expired) ================= */}
             {!chatExpired && (
-  <div className="
-    fixed md:absolute
-    bottom-4
-    left-0 right-0
-    md:left-0 md:right-0
-    w-full
-    px-3 md:px-6
-    z-40
-  ">
-    <div className="
-      w-full
-      rounded-2xl
-      bg-white/90 backdrop-blur-xl
-      border border-[#74512D]/15
-      shadow-[0_20px_40px_rgba(0,0,0,0.18)]
-      px-2 py-2
-    ">
-      <MessageInput />
-    </div>
-  </div>
-)}
+            <div className="
+                fixed md:absolute
+                bottom-4
+                left-0 right-0
+                md:left-0 md:right-0
+                w-full
+                px-3 md:px-6
+                z-40
+            ">
+            <div className="
+                w-full
+                rounded-2xl
+                bg-white/90 backdrop-blur-xl
+                border border-[#74512D]/15
+                shadow-[0_20px_40px_rgba(0,0,0,0.18)]
+                px-2 py-2
+            ">
+                <MessageInput />
+            </div>
+            </div>
+            )}
 
             {/* ================= CONTACT INFO SHEET (FRONTEND FEATURE) ================= */}
             <AnimatePresence>
