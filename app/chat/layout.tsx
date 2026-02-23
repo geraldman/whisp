@@ -16,6 +16,8 @@ import SettingsMenu from '@/app/components/SettingsMenu';
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import { usePathname } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import { performLogout } from '@/lib/utils/logout';
 
 export type SidebarMode = 'chat' | 'settings';
 export type SettingsView = 'profile' | 'requests' | 'about';
@@ -39,6 +41,7 @@ function ChatLayoutInner({
     pathname?.startsWith("/chat/") && pathname !== "/chat";
   const [mobileSettingsView, setMobileSettingsView] =
     useState<SettingsView | null>(null);
+  const router = useRouter();
   
     useEffect(() => {
       if (!user?.uid) return;
@@ -169,10 +172,7 @@ function ChatLayoutInner({
     <LogoutModal
       open={showLogout}
       onCancel={() => setShowLogout(false)}
-      onConfirm={async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      window.location.href = '/logout';
-      }}
+      onConfirm={() => performLogout(router)}
     />
     
   </div>

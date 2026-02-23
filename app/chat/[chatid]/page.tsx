@@ -33,9 +33,9 @@ export default function ChatDetailPage() {
     }
 
     if (!user) {
-        router.replace("/"); // atau routes.home
-        return <LoadingScreen mode="logout" />;
-    }
+  // ⛔ jangan redirect di render
+  return <LoadingScreen mode="logout" />;
+}
 
     // Get chat metadata from context
     const chatMetadata = getChatMetadata(chatId);

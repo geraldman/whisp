@@ -11,6 +11,7 @@ import LogoutModal from '@/app/components/modals/LogoutModal';
 import SearchUser from '@/app/components/SearchUser';
 import ChatList from '@/app/components/ChatList'; // BACKEND: Real chat list
 import NotificationBadge from '@/app/components/NotificationBadge';
+import { performLogout } from '@/lib/utils/logout';
 
 import type { SidebarMode, SettingsView } from '@/app/chat/layout';
 
@@ -76,15 +77,6 @@ export default function ChatSidebar({
     isResizing.current = true;
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
-  }
-
-  /* ================= LOGOUT ================= */
-  async function handleLogout() {
-    try {
-      await fetch('/api/logout', { method: 'POST' });
-    } finally {
-      router.replace('/logout');
-    }
   }
 
   // BACKEND: Get user display info
@@ -228,7 +220,7 @@ export default function ChatSidebar({
       <LogoutModal
         open={showLogout}
         onCancel={() => setShowLogout(false)}
-        onConfirm={handleLogout}
+        onConfirm={() => performLogout(router)}
       />
     </>
   );
