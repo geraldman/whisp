@@ -44,6 +44,16 @@ function AuthPageContent() {
     }
   }, [searchParams]);
 
+  // Check for action query parameter to set mode
+  useEffect(() => {
+    const actionParam = searchParams.get("action");
+    if (actionParam === "login") {
+      setMode("login");
+    } else if (actionParam === "register") {
+      setMode("register");
+    }
+  }, [searchParams]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
