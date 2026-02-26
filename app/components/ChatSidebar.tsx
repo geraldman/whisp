@@ -123,7 +123,7 @@ export default function ChatSidebar({
       <aside
         ref={sidebarRef}
         className={`
-          fixed md:relative
+          fixed md:relative overflow-y-auto
           top-0 left-0 md:left-auto
           min-h-[100dvh]
           flex flex-col
@@ -132,8 +132,8 @@ export default function ChatSidebar({
           z-50 md:z-auto
           transition-transform duration-300 md:transition-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          
         `}
-        style={{ width: `min(${width}px, 85vw)` }}
       >
         {/* ================= HEADER ================= */}
         <div className="h-14 px-4 flex items-center gap-4 border-b border-[#74512D]/15">

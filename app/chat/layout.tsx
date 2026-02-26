@@ -67,7 +67,7 @@ function ChatLayoutInner({
   <div className="min-h-[100dvh] bg-[#F6F1E3] relative">
 
     {/* ================= DESKTOP LAYOUT ================= */}
-    <div className="hidden md:flex min-h-[100dvh]">
+    <div className="hidden md:flex h-screen min-w-max">
 
       <ChatSidebar
         mode={mode}
