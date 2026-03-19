@@ -8,6 +8,10 @@ import { addFriendAndCreateChat } from '@/app/actions/friend/addFriendAndCreateC
 import { useSidebar } from '@/lib/context/SidebarContext';
 import type { SearchedUser } from './SearchUser';
 
+type AddFriendResult =
+  | { success: true; chatId: string; alreadyFriends?: boolean }
+  | { success: true; requestSent: true };
+
 export default function AddUser({
   user,
   onBack,
@@ -35,17 +39,30 @@ export default function AddUser({
     setLoading(true);
 
     try {
-      const result = await addFriendAndCreateChat(
+      const result = (await addFriendAndCreateChat(
         currentUser.uid,
         user.id
-      );
+      )) as AddFriendResult;
 
-      setSuccess(true);
-      setLoading(false);
+      // Existing friend/chat: navigate directly
+      if ("chatId" in result) {
+        setSuccess(true);
+        setLoading(false);
 
-      setTimeout(() => {
-        router.push(`/chat/${result.chatId}`);
-      }, 900);
+        setTimeout(() => {
+          router.push(`/chat/${result.chatId}`);
+        }, 900);
+        return;
+      }
+
+      // New relationship: request created, wait for recipient acceptance
+      if ("requestSent" in result) {
+        setSuccess(true);
+        setLoading(false);
+        return;
+      }
+
+      throw new Error("Unexpected response while creating friend request");
     } catch (err: any) {
       setError(err.message || 'Failed to add friend');
       setLoading(false);

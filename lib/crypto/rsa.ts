@@ -103,3 +103,19 @@ export async function rsaDecrypt(privateKey: CryptoKey, data: ArrayBuffer) {
   ensureCryptoAvailable();
   return crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, data);
 }
+
+export async function validateKeyPair(publicKeyB64: string, privateKeyB64: string) {
+  const pub = await importPublicKey(publicKeyB64);   // throws if invalid
+  const priv = await importPrivateKey(privateKeyB64); // throws if invalid
+
+  const challenge = crypto.getRandomValues(new Uint8Array(32));
+  const encrypted = await rsaEncrypt(pub, challenge.buffer);
+  const decrypted = await rsaDecrypt(priv, encrypted);
+
+  const out = new Uint8Array(decrypted);
+  const matches =
+    out.length === challenge.length &&
+    out.every((b, i) => b === challenge[i]);
+
+  return matches; // true => both valid and same keypair
+}

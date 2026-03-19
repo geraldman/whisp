@@ -464,15 +464,17 @@ function MessageBox() {
   if (chatExpired) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⏰</div>
+        <div className="text-center max-w-md item-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="w-20 h-20 mx-auto block mb-4">
+              <path fill="#6b4a2e" d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"/>
+            </svg>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Chat Expired</h2>
           <p className="text-gray-600 mb-4">
             This chat has been inactive for too long and has expired for security reasons.
           </p>
           {isCleaningUp ? (
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 mb-4">  
                 Cleaning up and preparing fresh encryption keys...
               </p>
               <div className="flex justify-center items-center">

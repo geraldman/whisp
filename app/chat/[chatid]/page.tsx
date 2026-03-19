@@ -140,13 +140,7 @@ export default function ChatDetailPage() {
             >
                 {/* Mobile Menu Button */}
                 <button
-                    onClick={() => {
-                        if (window.history.length > 1) {
-                             router.back();
-                        } else {
-                            router.push("/chat");
-                        }
-                    }}
+                    onClick={() => {router.push("/chat");}}
                     className="
                         cursor-pointer md:hidden
                         w-9 h-9 flex items-center justify-center rounded-full

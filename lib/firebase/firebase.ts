@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -45,4 +45,25 @@ export async function getUserEncryptionKeysSimplified(uid: string) {
     salt: data.salt,
     iv: data.iv,
   };
+}
+
+export async function updateUserEncryptionKeysSimplified(
+  uid: string,
+  publicKey: string,
+  encryptedPrivateKey: string,
+  salt: string,
+  iv: string
+){
+  try{
+    await updateDoc(doc(db, "users", uid), {
+      publicKey: publicKey,
+      encryptedPrivateKey: encryptedPrivateKey,
+      iv: iv,
+      salt: salt
+    });
+  }
+  catch(error){
+    console.log("Failed to update encryption keys");
+    throw error;
+  }
 }

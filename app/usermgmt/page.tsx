@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth } from "@/lib/firebase/firebase";
+import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { handleForgotPassword } from "../actions/handleForgotPassword";
-import { routes } from "@/app/routes";
 import LoadingScreen from "../components/LoadingScreenFixed";
 import { createAccountProcedure } from "@/lib/cryptoAdvanced";
 import { createAccountProcedureSimplified } from "@/lib/crypto";
@@ -15,7 +14,7 @@ export default function UserManagementPage(){
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [isEmailValidate, setEmailVal] = useState(false);
+  const [isPasswordValidate, setPasswordVal] = useState(false);
   const [password, setPassword] = useState("");
   const [secondPassword, setSecondPassword] = useState("");
   const [loading, setLoading] = useState(true);
@@ -27,9 +26,17 @@ export default function UserManagementPage(){
   const continueUrl = searchParams.get("continueUrl");
   const lang = searchParams.get("lang"); 
 
+  const passwordsMatch =
+    password.trim() !== "" &&
+    secondPassword.trim() !== "" &&
+    password === secondPassword;
+  const passwordStrongEnough = password.length >= 6;
+  const canSubmit = !loading && isPasswordValidate && passwordsMatch && passwordStrongEnough;
+
   function onFormSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // fill the function here
+    if (!canSubmit) return;
+    handleChangePassword(); 
   }
 
   useEffect(() => {
@@ -41,7 +48,7 @@ export default function UserManagementPage(){
     async function verifyCode() {
       try {
         await verifyPasswordResetCode(auth, actionCode!);
-        setEmailVal(true);
+        setPasswordVal(true);
       } catch (error) {
         // invalid or expired code
 
@@ -55,18 +62,29 @@ export default function UserManagementPage(){
   }, [actionCode]);
 
   useEffect(() => {
-    if(password !== "" && secondPassword !== "" && password !== secondPassword){
-      setError("Password is not same");
+    if (!password && !secondPassword) {
+      setError("");
+      return;
     }
+
+    if (password && password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (secondPassword && password !== secondPassword) {
+      setError("Password is not same");
+      return;
+    }
+
+    setError("");
   }, [password, secondPassword]);
 
   async function handleChangePassword(){
     try{
       const success = await confirmPasswordReset(auth, actionCode!, password);
-      
-      // TODO: changing the key - WIP
-      const newEncryptionKeys = await createAccountProcedureSimplified(password);
-
+    
+      // handle key changing after logging in again
 
       setSuccess(true);
       router.replace('/auth');
@@ -148,23 +166,34 @@ export default function UserManagementPage(){
 
 
         {/* Error / Success */}
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-2 text-sm text-red-600"
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
+        <motion.div layout className="mt-2 overflow-hidden">
+          <AnimatePresence initial={false} mode="wait">
+            {error ? (
+              <motion.p
+                key={error}
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height:   0, y: -4 }}
+                transition={{ duration: 0.26, ease: "easeOut" }}
+                className="text-sm text-red-600"
+              >
+                {error}
+              </motion.p>
+            ) : (
+              <motion.div
+                key="no-error"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 0, height: 0 }}
+                exit={{ opacity: 0, height: 0 }}
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Action Button */}
         <button
           type="submit"
-          disabled={loading || !isEmailValidate}
+          disabled={!canSubmit}
           className="cursor-pointer mt-6 w-full rounded-xl bg-[#74512D] py-3
                      text-white font-medium
                      shadow-md shadow-[#74512D]/30

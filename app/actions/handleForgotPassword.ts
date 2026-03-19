@@ -29,8 +29,7 @@ export async function handleForgotPassword(email: string){
         await sendCustomPasswordResetEmail(email, username, link)
         return true;
     }
-    catch(error){
-        console.log(error); // REMOVE THIS LATER FOR PREVENTING EMAIL ENUMERATION
+    catch(error){ // REMOVE THIS LATER FOR PREVENTING EMAIL ENUMERATION
         return true;
     }
 }

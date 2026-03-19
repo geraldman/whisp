@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
         <form onSubmit={onFormSubmit}>
         {/* Back */}
         <button
-          onClick={() => router.push(routes.home)}
+          onClick={() => router.push(routes.login)}
           aria-label="Back" type="button"
           className="cursor-pointer mb-4 w-9 h-9 rounded-full
                      flex items-center justify-center

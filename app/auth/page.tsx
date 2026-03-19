@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,10 +11,10 @@ import { routes } from "@/app/routes";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getDB } from "@/lib/db/indexeddb";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase/firebase";
+import { auth, updateUserEncryptionKeysSimplified } from "@/lib/firebase/firebase";
 import { deriveKeyFromPassword } from "@/lib/crypto/keyStore";
 import { aesDecrypt } from "@/lib/crypto/aes";
-import { createAccountProcedureSimplified } from "@/lib/crypto";
+import { createAccountProcedureSimplified, validateKeyPair } from "@/lib/crypto";
 import LoadingScreen from "@/app/components/LoadingScreenFixed";
 
 type AuthMode = "login" | "register";
@@ -35,6 +35,8 @@ function AuthPageContent() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRegisteringFlow, setIsRegisteringFlow] = useState(false);
+  const isRegisteringFlowRef = useRef(false);
 
   // Check for error query parameter
   useEffect(() => {
@@ -56,13 +58,51 @@ function AuthPageContent() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && mode === "login" && !isRegisteringFlow && !isRegisteringFlowRef.current) {
       router.replace(routes.chats);
     }
-  }, [user, router]);
+  }, [user, router, isRegisteringFlow, mode]);
+
+  // End temporary registration guard once sign-out has completed.
+  useEffect(() => {
+    if (isRegisteringFlow && !user) {
+      setIsRegisteringFlow(false);
+      isRegisteringFlowRef.current = false;
+    }
+  }, [isRegisteringFlow, user]);
 
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  function getFirebaseAuthErrorMessage(error: any, context: AuthMode): string {
+    const code = error?.code as string | undefined;
+
+    if (context === "login") {
+      if (code === "auth/invalid-credential") {
+        return "Invalid email or password.";
+      }
+      if (code === "auth/invalid-email") {
+        return "Please enter a valid email address.";
+      }
+      if (code === "auth/too-many-requests") {
+        return "Too many failed attempts. Please try again later.";
+      }
+    }
+
+    if (context === "register") {
+      if (code === "auth/invalid-email") {
+        return "Please enter a valid email address.";
+      }
+      if (code === "auth/email-already-in-use") {
+        return "This email is already registered. Please log in instead.";
+      }
+      if (code === "auth/weak-password") {
+        return "Password is too weak. Please use a stronger password.";
+      }
+    }
+
+    return error?.message || "An unexpected error occurred. Please try again.";
+  }
 
   async function handleLogin() {
     if (loading) return;
@@ -108,18 +148,53 @@ function AuthPageContent() {
         return;
       }
       
-      console.log("Decrypting private key on client...");
-      const kdfPassword = await deriveKeyFromPassword(password, keysResult.salt);
-      
-      const ivArray = Array.from(Uint8Array.from(atob(keysResult.iv), c => c.charCodeAt(0)));
-      const dataArray = Array.from(Uint8Array.from(atob(keysResult.encryptedPrivateKey), c => c.charCodeAt(0)));
-      
-      const decryptedPrivateKeyBase64 = await aesDecrypt(kdfPassword, ivArray, dataArray);
+      let privateKeyToStore = "";
+      let publicKeyToStore = "";
+
+      try {
+        console.log("Decrypting private key on client...");
+        const kdfPassword = await deriveKeyFromPassword(password, keysResult.salt);
+        const ivArray = Array.from(Uint8Array.from(atob(keysResult.iv), c => c.charCodeAt(0)));
+        const dataArray = Array.from(Uint8Array.from(atob(keysResult.encryptedPrivateKey), c => c.charCodeAt(0)));
+        const decryptedPrivateKeyBase64 = await aesDecrypt(kdfPassword, ivArray, dataArray);
+
+        const isValidPair = await validateKeyPair(keysResult.publicKey, decryptedPrivateKeyBase64);
+        if (!isValidPair) {
+          throw new Error("Stored key pair is invalid");
+        }
+
+        privateKeyToStore = decryptedPrivateKeyBase64;
+        publicKeyToStore = keysResult.publicKey;
+      } catch (keyError) {
+        console.warn("Stored keys invalid/unreadable, rotating user keys...", keyError);
+
+        const newEncryption = await createAccountProcedureSimplified(password);
+        await updateUserEncryptionKeysSimplified(
+          uid,
+          newEncryption.publicKey,
+          newEncryption.encryptedPrivateKey,
+          newEncryption.salt,
+          newEncryption.iv
+        );
+
+        const rekeyKdfPassword = await deriveKeyFromPassword(password, newEncryption.salt);
+        const rekeyIvArray = Array.from(Uint8Array.from(atob(newEncryption.iv), c => c.charCodeAt(0)));
+        const rekeyDataArray = Array.from(Uint8Array.from(atob(newEncryption.encryptedPrivateKey), c => c.charCodeAt(0)));
+        const rekeyPrivateKeyBase64 = await aesDecrypt(rekeyKdfPassword, rekeyIvArray, rekeyDataArray);
+
+        const isRekeyValid = await validateKeyPair(newEncryption.publicKey, rekeyPrivateKeyBase64);
+        if (!isRekeyValid) {
+          throw new Error("Failed to validate rotated key pair");
+        }
+
+        privateKeyToStore = rekeyPrivateKeyBase64;
+        publicKeyToStore = newEncryption.publicKey;
+      }
 
       console.log("Storing keys in IndexedDB...");
       const db = await getDB();
-      await db.put("keys", decryptedPrivateKeyBase64, "userPrivateKey");
-      await db.put("keys", keysResult.publicKey, "userPublicKey");
+      await db.put("keys", privateKeyToStore, "userPrivateKey");
+      await db.put("keys", publicKeyToStore, "userPublicKey");
       
       await new Promise(resolve => setTimeout(resolve, 500));
       console.log("Login successful!");
@@ -127,7 +202,7 @@ function AuthPageContent() {
 
     } catch (err: any) {
       console.error("Login exception:", err);
-      setError(err.message || "An error occurred during login");
+      setError(getFirebaseAuthErrorMessage(err, "login"));
     } finally {
       setLoading(false);
     }
@@ -170,6 +245,8 @@ function AuthPageContent() {
 
       setError("");
       setSuccessMessage("");
+      isRegisteringFlowRef.current = true;
+      setIsRegisteringFlow(true);
       setLoading(true);
 
       try {
@@ -188,6 +265,13 @@ function AuthPageContent() {
           throw new Error(result.error || "Failed to store encryption keys");
         }
 
+        // Force a fresh login so IndexedDB gets populated from decrypted key path.
+        await signOut(auth).catch(() => {});
+        setMode("login");
+        setPassword("");
+        setUsername("");
+        setSuccessMessage("Registration successful! Please log in with your credentials.");
+
       } catch (err: any) {
         // Cleanup Firebase user if it was created
         if (userCredential?.user) {
@@ -196,13 +280,17 @@ function AuthPageContent() {
             console.error("Failed to delete Firebase user:", e)
           );
         }
-        setError(err.message || "An unexpected error occurred. Please try again.");
+        setIsRegisteringFlow(false);
+        isRegisteringFlowRef.current = false;
+        setError(getFirebaseAuthErrorMessage(err, "register"));
 
       } finally {
         setLoading(false);
       }
     } catch (unexpectedErr: any) {
       console.error("Unexpected error in handleRegister:", unexpectedErr);
+      setIsRegisteringFlow(false);
+      isRegisteringFlowRef.current = false;
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
