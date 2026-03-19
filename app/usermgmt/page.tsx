@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth } from "@/lib/firebase/firebase";
-import { adminDb } from "@/lib/firebase/firebaseAdmin";
-import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
+import { verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingScreen from "../components/LoadingScreenFixed";
-import { createAccountProcedure } from "@/lib/cryptoAdvanced";
-import { createAccountProcedureSimplified } from "@/lib/crypto";
 
-export default function UserManagementPage(){
+function UserManagementContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -19,12 +16,7 @@ export default function UserManagementPage(){
   const [secondPassword, setSecondPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const mode = searchParams.get("mode");
   const actionCode = searchParams.get("oobCode");
-  const continueUrl = searchParams.get("continueUrl");
-  const lang = searchParams.get("lang"); 
 
   const passwordsMatch =
     password.trim() !== "" &&
@@ -49,7 +41,7 @@ export default function UserManagementPage(){
       try {
         await verifyPasswordResetCode(auth, actionCode!);
         setPasswordVal(true);
-      } catch (error) {
+      } catch {
         // invalid or expired code
 
         router.replace("/auth");
@@ -59,7 +51,7 @@ export default function UserManagementPage(){
     }   
 
     verifyCode();
-  }, [actionCode]);
+  }, [actionCode, router]);
 
   useEffect(() => {
     if (!password && !secondPassword) {
@@ -82,14 +74,13 @@ export default function UserManagementPage(){
 
   async function handleChangePassword(){
     try{
-      const success = await confirmPasswordReset(auth, actionCode!, password);
+      await confirmPasswordReset(auth, actionCode!, password);
     
       // handle key changing after logging in again
 
-      setSuccess(true);
       router.replace('/auth');
     }
-    catch(error){
+    catch{
       setError("An error occured");
     }
   }
@@ -221,5 +212,13 @@ export default function UserManagementPage(){
         </p>
       </motion.footer>
     </div>
+  );
+}
+
+export default function UserManagementPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <UserManagementContent />
+    </Suspense>
   );
 }
