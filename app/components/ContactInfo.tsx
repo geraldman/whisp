@@ -13,8 +13,8 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
   const params = useParams();
   const chatId = params?.chatid as string;
   
-  // Get user display info
-  const username = user?.displayName || user?.email?.split('@')[0] || 'User';
+  // Get username info
+  const username = user?.username || user?.email?.split('@')[0] || 'User';
   const userInitial = username[0]?.toUpperCase() || 'U';
   const userId = (user as any)?.numericId || '00000000';
 
@@ -103,7 +103,7 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
             className="mb-6 rounded-2xl bg-white/70
                        border border-[#74512D]/10 p-4"
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 overflow-x-clip">
               <div className="w-1.5 h-full rounded-full bg-[#74512D]/60" />
               <div>
                 <p className="text-xs uppercase tracking-wide
@@ -135,18 +135,6 @@ export default function ContactInfo({ onClose }: ContactInfoProps) {
               </div>
             </div>
           </div>
-
-          {/* DELETE */}
-          <button
-            className="cursor-pointer w-full py-3 rounded-xl
-                       border border-red-500/25
-                       text-red-600 text-sm font-medium
-                       hover:bg-red-50
-                       active:scale-[0.98]
-                       transition"
-          >
-            Delete friend
-          </button>
         </div>
       </motion.div>
     </div>

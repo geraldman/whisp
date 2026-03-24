@@ -53,7 +53,7 @@ function ChatPageContent() {
   }
 
   const username =
-    user.displayName || user.email?.split("@")[0] || "User";
+    user.username || user.email?.split("@")[0] || "User";
 
   /* ================= RENDER ================= */
   return (

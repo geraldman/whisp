@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
 export async function sendCustomPasswordResetEmail(
     email: string,
-    displayName: string,
+    username: string,
     link: string
 ){
     const mailOptions = {
@@ -20,7 +20,7 @@ export async function sendCustomPasswordResetEmail(
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2>Password Reset Request</h2>
-                <p>Hi ${displayName},</p>
+                <p>Hi ${username},</p>
                 <p>We received a request to reset your password. Click the button below to proceed:</p>
                 <a href="${link}" style="
                 display: inline-block;

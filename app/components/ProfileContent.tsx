@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'firebase/auth';
 import { useAuth } from '@/lib/context/AuthContext';
+import { auth } from '@/lib/firebase/firebase';
+import { deleteUserAccount } from '../actions/deleteUser';
 
 type AlertType = 'success' | 'error' | null;
 
 export default function ProfileContent({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
-  
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<{
     type: AlertType;
@@ -17,6 +21,13 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
 
   async function handleDeleteAccount() {
     if (loading) return;
+    if (!user?.uid) {
+      setAlert({
+        type: 'error',
+        message: 'User not found. Please log in again.',
+      });
+      return;
+    }
 
     const confirmed = window.confirm(
       'Are you sure you want to delete your account? This action cannot be undone.'
@@ -28,13 +39,21 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
     setLoading(true);
 
     try {
-      // TODO: Implement account deletion
-      await new Promise((res) => setTimeout(res, 1000));
+      const result = await deleteUserAccount(user.uid);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete account');
+      }
+
+      await signOut(auth).catch(() => {});
 
       setAlert({
         type: 'success',
-        message: 'Account deletion initiated',
+        message: 'Account deleted successfully. Redirecting...',
       });
+
+      setTimeout(() => {
+        router.replace('/');
+      }, 800);
     } catch {
       setAlert({
         type: 'error',
@@ -87,7 +106,7 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
                           rounded-full bg-white border border-[#74512D]/25
                           flex items-center justify-center shadow-sm">
             <span className="text-2xl sm:text-3xl md:text-4xl font-semibold text-[#543310]">
-              {(user?.displayName?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+              {(user?.username?.[0] || user?.email?.[0] || 'U').toUpperCase()}
             </span>
           </div>
         </div>
@@ -105,7 +124,7 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
 
           <div className="text-center mb-6">
             <h2 className="text-lg font-semibold text-[#543310]">
-              {user?.displayName || user?.email?.split('@')[0] || 'User'}
+              {user?.username || user?.email?.split('@')[0] || 'User'}
             </h2>
             <p className="text-sm text-[#74512D]/70">
               ID · {(user as any)?.numericId || '00000000'}
@@ -119,7 +138,7 @@ export default function ProfileContent({ onBack }: { onBack: () => void }) {
                 Username
               </p>
               <p className="text-sm text-[#543310] font-medium">
-                {user?.displayName || user?.email?.split('@')[0] || 'Not set'}
+                {user?.username || user?.email?.split('@')[0] || 'Not set'}
               </p>
             </div>
 

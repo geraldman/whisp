@@ -67,3 +67,24 @@ export async function deleteChatDocument(
     };
   }
 }
+
+export async function deleteChatfromUserDeletion(userid: string){
+  try{
+    const chatsSnapshot = await adminDb
+    .collection("chats")
+    .where("participants", "array-contains", userid)
+    .get();
+
+    for (const chatDoc of chatsSnapshot.docs) {
+      const result = await deleteChatDocument(chatDoc.id, userid);
+      if (!result.success) {
+        return false;
+      }
+    }
+  }
+  catch(error){
+    return false;
+  }
+  
+  return true
+}

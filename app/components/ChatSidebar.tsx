@@ -79,8 +79,8 @@ export default function ChatSidebar({
     document.body.style.userSelect = 'none';
   }
 
-  // BACKEND: Get user display info
-  const username = user?.displayName || user?.email?.split('@')[0] || 'User';
+  // BACKEND: Get username info
+  const username = user?.username || user?.email?.split('@')[0] || 'User';
   const userInitial = username[0]?.toUpperCase() || 'U';
   const userId = (user as any)?.numericId || '00000000';
 
@@ -195,7 +195,7 @@ export default function ChatSidebar({
             />
 
             {/* CHAT LIST (BACKEND: Real chat list with Firebase data) */}
-            <div className="flex-1 overflow-y-auto chat-scroll px-2 pb-4 bg-[#F8F4E1]">
+            <div className="flex-1 overflow-y-auto overflow-x chat-scroll px-2 pb-4 bg-[#F8F4E1]">
               {user?.uid && <ChatList uid={user.uid} />}
             </div>
           </>
