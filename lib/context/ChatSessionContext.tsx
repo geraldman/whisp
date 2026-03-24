@@ -38,6 +38,7 @@ interface ChatSessionProviderProps {
 
 interface InitResult {
   activeChatId: string | null;
+  chatId?: string;
   sessionKey: CryptoKey | null;
   chatExpired: boolean;
   error: string | null;
@@ -45,9 +46,11 @@ interface InitResult {
 }
 
 const ChatSessionContext = createContext<ChatSessionContextValue | null>(null);
+// Deduplicates concurrent initialization calls per user/chat route to avoid duplicate key writes.
 const initPromiseCache = new Map<string, Promise<InitResult>>();
 
 async function decryptSessionKeyForCurrentUser(encryptedSessionKey: string): Promise<CryptoKey> {
+  // Private key never comes from server responses; it is restored from IndexedDB on this device.
   const indexedDB = await getDB();
   const privateKeyPKCS8 = await indexedDB.get("keys", "userPrivateKey");
 
@@ -79,6 +82,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
     const initCacheKey = `${uid}:${chatId}`;
 
     const initSession = async (): Promise<InitResult> => {
+      // Synthetic ids (friend_<requestId>) represent accepted relationships without an active chat doc.
       if (chatId.startsWith("friend_")) {
         const friendRequestId = chatId.replace("friend_", "");
         const friendResult = await ensureChatFromFriendRequest(friendRequestId, uid);
@@ -110,6 +114,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
       if (result.chatExpired) {
         return {
           activeChatId: result.chatId,
+          chatId: result.chatId,
           sessionKey: null,
           chatExpired: true,
           error: null,
@@ -118,9 +123,11 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
       }
 
       if (result.recreated) {
+        // Route may point to a stale chat id; always navigate to the canonical id returned by server.
         router.replace(`/chat/${result.chatId}`);
         return {
           activeChatId: null,
+          chatId: result.chatId,
           sessionKey: null,
           chatExpired: false,
           error: null,
@@ -134,6 +141,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
       if (!sessionData) {
         return {
           activeChatId: null,
+          chatId: resolvedChatId,
           sessionKey: null,
           chatExpired: false,
           error: "Missing session data",
@@ -142,6 +150,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
       }
 
       if (sessionData.isNew) {
+        // First session bootstrap: generate one AES key, then wrap it per participant with RSA public keys.
         const participants = "participants" in sessionData ? sessionData.participants : [];
         const newSessionKey = await generateSessionAESKey();
         const sessionKeyBase64 = await exportSessionKey(newSessionKey);
@@ -163,6 +172,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
         const storeResult = await storeSessionKey(resolvedChatId, encryptedKeys);
 
         if (storeResult.alreadyExisted) {
+          // Another client wrote the session first; re-read to keep both clients on identical key material.
           const retryResult = await initializeChatSession(resolvedChatId, uid);
           if (!retryResult.success || !retryResult.sessionData || retryResult.sessionData.isNew) {
             throw new Error("Race condition error: expected existing session");
@@ -174,6 +184,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
 
           return {
             activeChatId: resolvedChatId,
+            chatId: resolvedChatId,
             sessionKey: importedSessionKey,
             chatExpired: false,
             error: null,
@@ -183,6 +194,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
 
         return {
           activeChatId: resolvedChatId,
+          chatId: resolvedChatId,
           sessionKey: newSessionKey,
           chatExpired: false,
           error: null,
@@ -194,6 +206,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
 
       return {
         activeChatId: resolvedChatId,
+        chatId: resolvedChatId,
         sessionKey: importedSessionKey,
         chatExpired: false,
         error: null,
@@ -214,6 +227,11 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
         if (!mounted) return;
 
         if (initResult.redirected) {
+          return;
+        }
+
+        if (initResult.chatId && initResult.chatId !== chatId) {
+          router.replace(`/chat/${initResult.chatId}`);
           return;
         }
 
@@ -274,6 +292,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
       const timeSinceActivity = now - lastActivityTime;
 
       if (timeSinceActivity > CHAT_INACTIVITY_TIMEOUT) {
+        // UI transitions to expired state first; actual deletion/unlink is handled in a separate effect.
         setChatExpired(true);
         setLoading(false);
       }
@@ -345,6 +364,7 @@ export function ChatSessionProvider({ chatId, uid, children }: ChatSessionProvid
     const cleanupTimeout = setTimeout(async () => {
       if (!mounted) return;
 
+      // Cleanup sequence keeps friend relationship but removes stale chat + key session artifacts.
       await deleteChatDocument(activeChatId, uid);
       await unlinkChatFromFriendRequest(activeChatId, uid);
 

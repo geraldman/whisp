@@ -35,7 +35,7 @@ interface InitializeChatSessionResult {
 /**
  * Consolidated chat initialization that combines chat verification, expiry check, 
  * and session key retrieval into a single optimized call.
- * Reduces 3 separate database reads to 1-2 reads.
+ * Reduces multiple round-trips by returning both chat and crypto-session readiness in one response.
  */
 export async function initializeChatSession(
   chatId: string,
@@ -56,7 +56,7 @@ export async function initializeChatSession(
   const chatRef = adminDb.collection("chats").doc(chatId);
   const chatSnap = await chatRef.get();
 
-  // CASE 1: Chat exists - verify expiry and get session
+  // CASE 1: Chat exists -> authorize participant, evaluate inactivity expiry, then resolve latest session.
   if (chatSnap.exists) {
     const chatData = chatSnap.data();
     const participants = chatData?.participants || [];
@@ -102,7 +102,7 @@ export async function initializeChatSession(
       };
     }
 
-    // Chat is valid - get session data in same transaction
+    // Chat is valid; newest session doc carries per-user wrapped AES keys.
     const sessionsRef = chatRef.collection("sessions");
     const sessionSnapshot = await sessionsRef
       .orderBy("createdAt", "desc")
@@ -111,7 +111,7 @@ export async function initializeChatSession(
 
     let sessionData;
     if (!sessionSnapshot.empty) {
-      // Session exists
+      // The server stores one encrypted key blob per participant field: encryptedKey_<uid>.
       const sessionDoc = sessionSnapshot.docs[0];
       const sessionDocData = sessionDoc.data();
       const encryptedKeyForUser = sessionDocData[`encryptedKey_${currentUserId}`];
@@ -133,7 +133,7 @@ export async function initializeChatSession(
         isNew: false,
       };
     } else {
-      // No session - client needs to generate
+      // No session yet: client will generate AES key and upload wrapped copies for all participants.
       sessionData = {
         sessionId: null,
         encryptedSessionKey: null,
@@ -160,7 +160,7 @@ export async function initializeChatSession(
     };
   }
 
-  // CASE 2: Chat doesn't exist - look for friend request and recreate
+  // CASE 2: Chat missing -> recover from accepted friend relationship, or recreate if needed.
 
   // Try to find friend request with this chatId
   let friendRequestsSnapshot = await adminDb
@@ -170,7 +170,7 @@ export async function initializeChatSession(
     .limit(1)
     .get();
 
-  // If not found by chatId, search by user (handles unlinked chats)
+  // Fallback by user allows recovery when route holds stale chatId after expiration/recreation.
   if (friendRequestsSnapshot.empty) {
     const fromSnapshot = await adminDb
       .collection("friend_requests")
@@ -185,10 +185,40 @@ export async function initializeChatSession(
       .get();
     
     const allDocs = [...fromSnapshot.docs, ...toSnapshot.docs];
-    const matchingDoc = allDocs.find(doc => {
+    const noChatIdDoc = allDocs.find((doc) => {
       const data = doc.data();
-      return !data.chatId || data.chatId === chatId;
+      return !data.chatId;
     });
+
+    const exactChatIdDoc = allDocs.find((doc) => {
+      const data = doc.data();
+      return data.chatId === chatId;
+    });
+
+    const differentChatIdDoc = allDocs.find((doc) => {
+      const data = doc.data();
+      return typeof data.chatId === "string" && data.chatId && data.chatId !== chatId;
+    });
+
+    // If relationship already points to a newer chat, return it to heal stale client routes.
+    if (differentChatIdDoc) {
+      const data = differentChatIdDoc.data();
+      const latestChatId = data.chatId as string;
+      const latestChatSnap = await adminDb.collection("chats").doc(latestChatId).get();
+
+      if (latestChatSnap.exists) {
+        return {
+          success: true,
+          chatExists: true,
+          chatExpired: false,
+          chatId: latestChatId,
+          oldChatId: chatId,
+          recreated: true,
+        };
+      }
+    }
+
+    const matchingDoc = exactChatIdDoc || noChatIdDoc || differentChatIdDoc;
     
     if (!matchingDoc) {
       return {
@@ -223,7 +253,7 @@ export async function initializeChatSession(
     };
   }
 
-  // Recreate chat with new ID
+  // Recreate chat shell only; actual session key material is generated client-side per device flow.
   const newChatId = randomUUID();
   const now = new Date();
 

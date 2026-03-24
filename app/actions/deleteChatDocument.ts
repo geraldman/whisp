@@ -9,6 +9,7 @@ interface DeleteResult {
 
 /**
  * Immediately deletes a chat document and all its messages.
+ * Also deletes session subcollection so obsolete wrapped AES keys are not reused.
  * This triggers real-time updates to all listeners via onSnapshot.
  */
 export async function deleteChatDocument(
@@ -35,6 +36,7 @@ export async function deleteChatDocument(
       };
     }
 
+    // Delete messages and sessions in one batch to keep cleanup atomic from client perspective.
     // Delete all messages in the chat (subcollection)
     const messagesRef = chatRef.collection("messages");
     const messagesSnapshot = await messagesRef.get();

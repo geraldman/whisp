@@ -5,8 +5,8 @@ import { FieldValue } from "firebase-admin/firestore";
 
 /**
  * Get or create a session key for a user in a chat.
- * Session keys are encrypted with each participant's RSA public key.
- * Returns the encrypted session key for the requesting user.
+ * Session keys are stored as participant-specific RSA-wrapped variants of one AES key.
+ * This action only returns the caller's wrapped key; it never exposes plaintext key material.
  */
 export async function getOrCreateSessionKey(chatId: string, userId: string) {
   if (!chatId || !userId) {
@@ -28,7 +28,7 @@ export async function getOrCreateSessionKey(chatId: string, userId: string) {
     throw new Error("Chat not found");
   }
 
-  // Check if session keys already exist
+  // Session collection is append-only by recency; latest session wins.
   const sessionsRef = chatRef.collection("sessions");
   const sessionSnapshot = await sessionsRef
     .orderBy("createdAt", "desc") // Get the most recent session
@@ -36,12 +36,12 @@ export async function getOrCreateSessionKey(chatId: string, userId: string) {
     .get();
 
   if (!sessionSnapshot.empty) {
-    // Session exists - return the encrypted key for this user
+    // Session exists - return the encrypted key variant scoped to this user.
     const sessionDoc = sessionSnapshot.docs[0];
     const sessionData = sessionDoc.data();
     
     
-    // Each user has their own encrypted version of the session key
+    // Field naming convention couples each key envelope to its recipient uid.
     const encryptedKeyForUser = sessionData[`encryptedKey_${userId}`];
     
     if (!encryptedKeyForUser) {
@@ -56,8 +56,7 @@ export async function getOrCreateSessionKey(chatId: string, userId: string) {
     };
   }
 
-  // No session exists - need to generate one on client side
-  // Return null to signal client to generate and store session key
+  // No session exists yet. Client generates AES key and calls storeSessionKey with wrapped copies.
   
   return {
     sessionId: null,
@@ -68,7 +67,7 @@ export async function getOrCreateSessionKey(chatId: string, userId: string) {
 }
 
 /**
- * Store encrypted session keys for all participants.
+ * Stores one session document containing encrypted keys for all participants.
  * Called by client after generating a new session key.
  */
 export async function storeSessionKey(
@@ -96,7 +95,7 @@ export async function storeSessionKey(
     }
   }
 
-  // Check if a session already exists (race condition check)
+  // Idempotency guard: if another device created a session first, return existing one.
   const sessionsRef = chatRef.collection("sessions");
   const existingSessionSnapshot = await sessionsRef
     .orderBy("createdAt", "desc")

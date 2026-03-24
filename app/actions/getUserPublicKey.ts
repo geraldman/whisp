@@ -3,7 +3,7 @@
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 
 /**
- * Get a user's public key from Firestore
+ * Returns the RSA public key used to wrap session AES keys for a single recipient.
  */
 export async function getUserPublicKey(userId: string) {
   if (!userId) {
@@ -25,7 +25,8 @@ export async function getUserPublicKey(userId: string) {
 }
 
 /**
- * Get multiple users' public keys at once
+ * Loads public keys for multiple recipients.
+ * Note: this currently performs sequential reads; acceptable for small participant sets.
  */
 export async function getUserPublicKeys(userIds: string[]) {
   if (!userIds || userIds.length === 0) {

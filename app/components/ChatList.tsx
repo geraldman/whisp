@@ -43,6 +43,7 @@ export default function ChatList({ uid }: ChatListProps) {
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [presenceStatus, setPresenceStatus] = useState<Record<string, PresenceStatus>>({});
   const [loading, setLoading] = useState(true);
+  const [listenerRetryToken, setListenerRetryToken] = useState(0);
   const router = useRouter();
   const params = useParams();
   const currentChatId = params.chatid as string;
@@ -53,6 +54,8 @@ export default function ChatList({ uid }: ChatListProps) {
   const activeChatsRef = useRef<Chat[]>([]);
   const friendRelationshipsRef = useRef<Map<string, FriendRequest>>(new Map());
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryAttemptsRef = useRef(0);
 
   // Debounced update function to prevent multiple rapid re-renders
   const scheduleUpdate = useCallback(async () => {
@@ -138,6 +141,28 @@ export default function ChatList({ uid }: ChatListProps) {
     }
 
     let mounted = true;
+    activeChatsRef.current = [];
+    friendRelationshipsRef.current.clear();
+
+    const scheduleRetry = () => {
+      if (!mounted) return;
+      if (retryAttemptsRef.current >= 3) {
+        setLoading(false);
+        return;
+      }
+
+      retryAttemptsRef.current += 1;
+      const retryDelay = retryAttemptsRef.current * 400;
+
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+
+      retryTimeoutRef.current = setTimeout(() => {
+        if (!mounted) return;
+        setListenerRetryToken((prev) => prev + 1);
+      }, retryDelay);
+    };
 
     // Listen to both active chats AND accepted friend requests
     const chatsQuery = query(
@@ -164,6 +189,7 @@ export default function ChatList({ uid }: ChatListProps) {
       chatsQuery,
       (snapshot) => {
         if (!mounted) return;
+        retryAttemptsRef.current = 0;
         activeChatsRef.current = snapshot.docs.map((doc) => {
           const data = doc.data();
           const otherParticipantId = data.participants.find((p: string) => p !== uid);
@@ -184,7 +210,7 @@ export default function ChatList({ uid }: ChatListProps) {
       },
       (error) => {
         if (!mounted) return;
-        setLoading(false);
+        scheduleRetry();
       }
     );
 
@@ -193,6 +219,7 @@ export default function ChatList({ uid }: ChatListProps) {
       friendRequestsFromQuery,
       (snapshot) => {
         if (!mounted) return;
+        retryAttemptsRef.current = 0;
         snapshot.docs.forEach((doc) => {
           const data = doc.data() as FriendRequest;
           friendRelationshipsRef.current.set(doc.id, { ...data, id: doc.id });
@@ -203,6 +230,7 @@ export default function ChatList({ uid }: ChatListProps) {
       },
       (error) => {
         if (!mounted) return;
+        scheduleRetry();
       }
     );
 
@@ -211,6 +239,7 @@ export default function ChatList({ uid }: ChatListProps) {
       friendRequestsToQuery,
       (snapshot) => {
         if (!mounted) return;
+        retryAttemptsRef.current = 0;
         snapshot.docs.forEach((doc) => {
           const data = doc.data() as FriendRequest;
           friendRelationshipsRef.current.set(doc.id, { ...data, id: doc.id });
@@ -221,6 +250,7 @@ export default function ChatList({ uid }: ChatListProps) {
       },
       (error) => {
         if (!mounted) return;
+        scheduleRetry();
       }
     );
 
@@ -230,11 +260,14 @@ export default function ChatList({ uid }: ChatListProps) {
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
       }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
       chatsUnsubscribe();
       friendsFromUnsubscribe();
       friendsToUnsubscribe();
     };
-  }, [uid, scheduleUpdate]);
+  }, [uid, scheduleUpdate, listenerRetryToken]);
 
   // Listen to presence status for all users in chats (Realtime Database)
   useEffect(() => {

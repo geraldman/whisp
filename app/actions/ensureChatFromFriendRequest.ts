@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 
 /**
  * Creates or finds a chat for a friend request relationship.
- * Used when accessing a chat after the chatId has been unlinked.
+ * Used when accessing friend_<requestId> routes or after chatId unlink during expiry cleanup.
  */
 export async function ensureChatFromFriendRequest(
   friendRequestId: string,
@@ -36,7 +36,7 @@ export async function ensureChatFromFriendRequest(
     throw new Error("Friend request not found");
   }
 
-  // Check if friend request already has a chatId
+  // Fast-path: relationship already points to an active chat.
   if (friendRequestData.chatId) {
     // Check if that chat still exists
     const chatRef = adminDb.collection("chats").doc(friendRequestData.chatId);
@@ -57,7 +57,7 @@ export async function ensureChatFromFriendRequest(
     }
   }
 
-  // Create a new chat
+  // No active chat linked to this relationship, so we create a new chat shell.
   const newChatId = randomUUID();
 
   await adminDb.collection("chats").doc(newChatId).set({
@@ -69,13 +69,13 @@ export async function ensureChatFromFriendRequest(
     saved: false,
   });
 
-  // Update the friend request with the new chatId
+  // Persist canonical routing target for both participants.
   await friendRequestRef.update({
     chatId: newChatId,
     chatRecreatedAt: new Date(),
   });
 
-  // Add a system message
+  // System message signals key/session reset point for clients.
   await adminDb
     .collection("chats")
     .doc(newChatId)

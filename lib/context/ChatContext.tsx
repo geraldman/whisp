@@ -23,6 +23,7 @@ const ChatContext = createContext<ChatContextType>({
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [chatMetadata, setChatMetadataState] = useState<Record<string, ChatMetadata>>({});
 
+  // Lightweight client cache: prevents repeated user lookups when rendering chat header/list.
   const setChatMetadata = (chatId: string, metadata: ChatMetadata) => {
     setChatMetadataState((prev) => ({
       ...prev,
@@ -30,6 +31,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // Returns null until metadata is discovered and injected by ChatList.
   const getChatMetadata = (chatId: string): ChatMetadata | null => {
     return chatMetadata[chatId] || null;
   };

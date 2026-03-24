@@ -13,6 +13,7 @@ const firebaseConfig = {
     databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
+// Client SDK instance for browser-side auth, Firestore and Realtime Database presence updates.
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
@@ -27,7 +28,7 @@ export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
 
 /**
- * Fetches user encryption keys from Firestore for login
+ * Fetches encrypted private key bundle needed to reconstruct local crypto identity at login.
  */
 export async function getUserEncryptionKeysSimplified(uid: string) {
   const userDoc = await getDoc(doc(db, "users", uid));
@@ -53,6 +54,7 @@ export async function updateUserEncryptionKeysSimplified(
   salt: string,
   iv: string
 ){
+  // Used by key-rotation/recovery flows when stored key pair becomes invalid.
   try{
     await updateDoc(doc(db, "users", uid), {
       publicKey: publicKey,

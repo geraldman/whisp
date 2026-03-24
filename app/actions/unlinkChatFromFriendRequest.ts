@@ -14,6 +14,7 @@ export async function unlinkChatFromFriendRequest(
 ): Promise<UnlinkResult> {
   try {
 
+    // Relationship is preserved while chatId is removed so a fresh chat can be recreated later.
     // Find all friend_requests that reference this chatId
     const friendRequestsRef = adminDb.collection("friend_requests");
     
